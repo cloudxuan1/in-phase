@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crosstalk · 串聯</title>
+<title>In-Phase · 串聯</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>">
 <link rel="apple-touch-icon" href="data:image/png;base64,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">
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
@@ -29,9 +29,19 @@
 
   /* Header */
   .header { text-align: center; padding: 28px 16px 12px; border-bottom: 2px dashed var(--shadow); }
-  .header h1 { font-size: 28px; font-weight: 800; color: var(--accent); letter-spacing: 4px; text-transform: uppercase; text-shadow: 2px 2px 0 #fce4d6; }
-  .gear { position: absolute; top: 16px; right: 16px; cursor: pointer; opacity: .6; transition: opacity .2s; text-align: center; font-size: 8px; color: var(--muted); }
+  .header h1 {
+    font-size: 28px; font-weight: 800; color: var(--accent); letter-spacing: 6px;
+    text-transform: uppercase; text-shadow: 2px 2px 0 #fce4d6;
+    display: flex; align-items: center; justify-content: center; gap: 2px;
+  }
+  .phase-wave { color: var(--accent); filter: drop-shadow(2px 2px 0 #fce4d6); margin: 0 -1px; }
+  .gear {
+    position: absolute; top: 16px; right: 16px; cursor: pointer; opacity: .6;
+    transition: opacity .2s; text-align: center; font-size: 7px; font-weight: 600;
+    color: var(--accent); letter-spacing: 2px;
+  }
   .gear:hover { opacity: 1; }
+  .gear span { display: block; margin-top: 2px; }
 
   /* Nav */
   .nav { display: flex; justify-content: center; gap: 12px; padding: 20px 16px; flex-wrap: wrap; align-items: center; }
@@ -58,6 +68,9 @@
   }
   .card:hover { transform: translateY(-2px); box-shadow: 4px 4px 0 var(--shadow); }
   .card.expanded { box-shadow: 4px 4px 0 var(--tan); transform: none; }
+  .card.pair-glow, .card-empty.pair-glow {
+    box-shadow: 0 0 0 2px #f6c6ad, 0 0 16px #f6c6ad99, 3px 3px 0 var(--light);
+  }
   .card-empty {
     background: transparent; border: 2px dashed var(--shadow); margin-bottom: 12px;
     padding: 32px 14px; text-align: center; color: #c4b4a0; font-size: 11px;
@@ -70,14 +83,28 @@
   }
   .cover img { width: 100%; height: 100%; object-fit: cover; }
   .vinyl { width: 60%; height: 60%; border-radius: 50%; background: radial-gradient(circle, #7a7068 15%, #6a635c 16%, #6a635c 30%, #7a7068 31%); opacity: .15; }
+  .pair-pill {
+    position: absolute; top: 8px; right: 8px; z-index: 2;
+    font-size: 10px; line-height: 1.1; color: var(--cream);
+    background: #7a7068dd; border: 1px solid #5a534c;
+    padding: 2px 8px; border-radius: 999px;
+  }
   .cover .album-label { position: absolute; bottom: 6px; right: 6px; font-size: 8px; color: var(--muted); background: #faf0e6cc; padding: 2px 4px; }
   .song-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; line-height: 1.3; }
   .song-artist { font-size: 11px; color: #8a7a68; margin-bottom: 4px; }
   .listen-link { font-size: 9px; color: var(--weather); text-decoration: none; }
   .tag { display: inline-block; padding: 3px 8px; font-size: 10px; margin: 0 4px 4px 0; }
+  .pair-meta {
+    margin-top: 6px; font-size: 10px; color: var(--muted);
+    line-height: 1.4; word-break: break-word;
+  }
 
   /* Expanded card content */
-  .theme-bar { font-size: 10px; color: var(--muted); margin-top: 10px; padding: 6px 8px; background: #f4f0ea; }
+  .theme-bar { font-size: 10px; color: var(--muted); margin-top: 10px; padding: 8px; background: #f4f0ea; }
+  .theme-title { font-size: 11px; color: var(--text); line-height: 1.5; word-break: break-word; }
+  .pair-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px; padding:8px; background:#f4f0ea; }
+  .pair-jump { border:none; background:none; color:var(--accent); cursor:pointer; font-size:14px; font-family:inherit; padding:0; line-height:1; }
+  .pair-jump.disabled { opacity:.35; }
   .note { font-size: 12px; line-height: 1.6; color: #7a7068; padding: 10px 0; border-top: 1px dashed var(--light); margin-top: 8px; font-style: italic; }
   .comments-section { border-top: 2px dashed var(--light); margin-top: 12px; padding-top: 10px; }
   .comments-label { font-size: 10px; color: var(--muted); margin-bottom: 8px; letter-spacing: 1px; }
@@ -639,7 +666,11 @@ function SongCard({
   song,
   pair,
   expanded,
+  pairGlow,
   onToggle,
+  onJumpPair,
+  currentCardKey,
+  onEmptyClick,
   onAddComment,
   onUpdateSong,
   settings,
@@ -651,9 +682,17 @@ function SongCard({
   const [editCover, setEditCover] = useState("");
   const [editLink, setEditLink] = useState("");
   const [searchRes, setSearchRes] = useState([]);
+  const otherSong = side === "claude" ? pair.user_song : pair.claude_song;
+  const qSide = pair.asked_by === "claude" ? "claude" : "user";
+  const qIcon = qSide === "claude" ? settings.claudeIcon : settings.userIcon;
+  const pairThemeLine = `${qIcon} ask：“${pair.theme || ""}”`;
+  const targetExp = `${side === "claude" ? "u" : "c"}-${pair.id}`;
   const [searching, setSearching] = useState(false);
   if (!song) return /*#__PURE__*/React.createElement("div", {
-    className: "card-empty"
+    className: `card-empty ${pairGlow ? "pair-glow" : ""}`,
+    onClick: onEmptyClick,
+    style: onEmptyClick ? { cursor: "pointer" } : null,
+    title: onEmptyClick ? "Reply" : undefined
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 20,
@@ -702,7 +741,8 @@ function SongCard({
     setSearchRes([]);
   };
   return /*#__PURE__*/React.createElement("div", {
-    className: `card ${expanded ? "expanded" : ""}`,
+    ref: el => { if (!window.cardRefs) window.cardRefs = {}; if (el) window.cardRefs[currentCardKey] = el; },
+    className: `card ${expanded ? "expanded" : ""} ${pairGlow ? "pair-glow" : ""}`,
     onClick: onToggle
   }, /*#__PURE__*/React.createElement("div", {
     className: "cover"
@@ -713,7 +753,9 @@ function SongCard({
     className: "vinyl"
   }), song.album && /*#__PURE__*/React.createElement("div", {
     className: "album-label"
-  }, song.album)), /*#__PURE__*/React.createElement("div", {
+  }, song.album), /*#__PURE__*/React.createElement("div", {
+    className: "pair-pill"
+  }, `#${pair.id}`)), /*#__PURE__*/React.createElement("div", {
     className: "song-title"
   }, song.title), /*#__PURE__*/React.createElement("div", {
     className: "song-artist"
@@ -741,8 +783,16 @@ function SongCard({
   })), expanded && /*#__PURE__*/React.createElement("div", {
     onClick: e => e.stopPropagation()
   }, /*#__PURE__*/React.createElement("div", {
-    className: "theme-bar"
-  }, "\u21C4 ", pair.theme), song.note && /*#__PURE__*/React.createElement("div", {
+    className: "pair-header"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "theme-title"
+  }, pairThemeLine), /*#__PURE__*/React.createElement("button", {
+    className: `pair-jump ${otherSong ? "" : "disabled"}`,
+    onClick: e => {
+      e.stopPropagation();
+      onJumpPair && onJumpPair();
+    }
+  }, "⇄")), song.note && /*#__PURE__*/React.createElement("div", {
     className: "note"
   }, "\"", song.note, "\""), !editing && /*#__PURE__*/React.createElement("button", {
     onClick: startEdit,
@@ -1163,7 +1213,8 @@ function App() {
     headphoneType: "wired"
   });
   const [customTags, setCustomTags] = useState([]);
-  const [exMode, setExMode] = useState("user");
+  const [exMode, setExMode] = useState("claude");
+  const [pendingIdx, setPendingIdx] = useState(0);
   const [exTheme, setExTheme] = useState("");
   const [exSong, setExSong] = useState("");
   const [exArtist, setExArtist] = useState("");
@@ -1211,21 +1262,36 @@ function App() {
     window.addEventListener("scroll", s);
     return () => window.removeEventListener("scroll", s);
   }, []);
+  useEffect(() => {
+    const count = pairs.filter(p => p.asked_by === "claude" && !p.user_song).length;
+    if (count === 0 && pendingIdx !== 0) {
+      setPendingIdx(0);
+    } else if (pendingIdx >= count) {
+      setPendingIdx(Math.max(0, count - 1));
+    }
+  }, [pairs, pendingIdx]);
   const toggleTag = t => setAt(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t]);
   const filtered = at.length === 0 ? pairs : pairs.filter(p => {
     const tags = [...Object.values(p.claude_song?.tags || {}), ...Object.values(p.user_song?.tags || {})];
     return at.every(t => tags.includes(t));
   });
   const jump = useCallback(id => {
+    const pair = pairs.find(p => p.id === id);
+    const side = pair?.asked_by === "user" ? "u" : "c";
+    const target = `${side}-${id}`;
     setPage("home");
-    setExp(`c-${id}`);
+    setExp(target);
     setTimeout(() => {
-      refs.current[`c-${id}`]?.scrollIntoView({
+      refs.current[target]?.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+      window.cardRefs?.[target]?.scrollIntoView({
         behavior: "smooth",
         block: "center"
       });
     }, 100);
-  }, []);
+  }, [pairs]);
   const addComment = useCallback(async (pid, sender, text, side) => {
     const r = await api("/comments", "POST", {
       pair_id: pid,
@@ -1352,7 +1418,14 @@ function App() {
     setSub(false);
   }
   const has = pairs.some(p => p.claude_song || p.user_song);
-  const pending = pairs.find(p => p.asked_by === "claude" && !p.user_song);
+  const pendingQs = pairs.filter(p => p.asked_by === "claude" && !p.user_song).slice().sort((a, b) => a.id - b.id);
+  const pending = pendingQs[pendingIdx] || pendingQs[0];
+  const pendingCount = pendingQs.length;
+  const pendingPos = pending ? pendingQs.findIndex(p => p.id === pending.id) + 1 : 0;
+  const selectPending = id => {
+    const idx = pendingQs.findIndex(p => p.id === id);
+    if (idx >= 0) setPendingIdx(idx);
+  };
   if (loading) return /*#__PURE__*/React.createElement("div", {
     className: "loading"
   }, /*#__PURE__*/React.createElement("span", {
@@ -1433,6 +1506,7 @@ function App() {
     onChange: e => setExCust(e.target.value)
   })));
   const colClass = ms === "claude" ? "hide-user" : ms === "user" ? "hide-claude" : "";
+  const activePairId = exp ? Number(String(exp).split("-")[1]) : null;
   return /*#__PURE__*/React.createElement("div", {
     className: "wrap"
   }, /*#__PURE__*/React.createElement("div", {
@@ -1446,14 +1520,39 @@ function App() {
     type: settings.headphoneType,
     connected: has,
     size: 80
-  })), /*#__PURE__*/React.createElement("h1", null, "Crosstalk")), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement("h1", null, "IN", /*#__PURE__*/React.createElement("svg", {
+    className: "phase-wave",
+    viewBox: "0 0 24 12",
+    width: "20",
+    height: "10"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M2 6 Q6 1 8 6 Q10 11 12 6 Q14 1 16 6 Q18 11 22 6",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round"
+  })), "PHASE")), /*#__PURE__*/React.createElement("div", {
     className: "gear",
     onClick: () => setShowSet(true)
-  }, /*#__PURE__*/React.createElement(PH, {
-    type: settings.headphoneType,
-    connected: true,
-    size: 28
-  }), /*#__PURE__*/React.createElement("div", null, "\u2699")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 28 16",
+    width: "24",
+    height: "14"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M2 8 Q5 3 7 8 Q9 13 11 8 Q13 3 15 8 Q17 13 19 8 Q21 3 23 8 Q25 13 27 8",
+    fill: "none",
+    stroke: "var(--accent)",
+    strokeWidth: "1.5",
+    strokeLinecap: "round",
+    opacity: "0.5"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M2 8 Q5 3 7 8 Q9 13 11 8 Q13 3 15 8 Q17 13 19 8 Q21 3 23 8 Q25 13 27 8",
+    fill: "none",
+    stroke: "var(--accent)",
+    strokeWidth: "1.5",
+    strokeLinecap: "round",
+    transform: "translate(0, -3)"
+  })), /*#__PURE__*/React.createElement("span", null, "SET")), /*#__PURE__*/React.createElement("div", {
     className: "nav"
   }, /*#__PURE__*/React.createElement("button", {
     className: `btn ${page === "home" ? "active" : ""}`,
@@ -1506,7 +1605,22 @@ function App() {
     song: p.claude_song,
     pair: p,
     expanded: exp === `c-${p.id}`,
-    onToggle: () => setExp(exp === `c-${p.id}` ? null : `c-${p.id}`),
+    pairGlow: activePairId === p.id && exp !== `c-${p.id}`,
+    currentCardKey: `c-${p.id}`,
+    onEmptyClick: null,
+    onToggle: () => {
+      const next = exp === `c-${p.id}` ? null : `c-${p.id}`;
+      setExp(next);
+      if (next) setTimeout(() => window.cardRefs?.[next]?.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
+    },
+    onJumpPair: () => {
+      setExp(null);
+      setTimeout(() => {
+        const target = `u-${p.id}`;
+        setExp(target);
+        setTimeout(() => window.cardRefs?.[target]?.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
+      }, 40);
+    },
     onAddComment: addComment,
     onUpdateSong: updateSong,
     settings: settings,
@@ -1525,7 +1639,27 @@ function App() {
     song: p.user_song,
     pair: p,
     expanded: exp === `u-${p.id}`,
-    onToggle: () => setExp(exp === `u-${p.id}` ? null : `u-${p.id}`),
+    pairGlow: activePairId === p.id && exp !== `u-${p.id}`,
+    currentCardKey: `u-${p.id}`,
+    onEmptyClick: p.asked_by === "claude" && !p.user_song ? () => {
+      setPage("exchange");
+      setExMode("claude");
+      selectPending(p.id);
+      setTimeout(() => document.querySelector(".exchange")?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+    } : null,
+    onToggle: () => {
+      const next = exp === `u-${p.id}` ? null : `u-${p.id}`;
+      setExp(next);
+      if (next) setTimeout(() => window.cardRefs?.[next]?.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
+    },
+    onJumpPair: () => {
+      setExp(null);
+      setTimeout(() => {
+        const target = `c-${p.id}`;
+        setExp(target);
+        setTimeout(() => window.cardRefs?.[target]?.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
+      }, 40);
+    },
     onAddComment: addComment,
     onUpdateSong: updateSong,
     settings: settings,
@@ -1541,12 +1675,12 @@ function App() {
       justifyContent: "center"
     }
   }, /*#__PURE__*/React.createElement("button", {
-    className: `btn ${exMode === "user" ? "active" : ""}`,
-    onClick: () => setExMode("user")
-  }, "\u4F60\u51FA\u984C You Ask"), /*#__PURE__*/React.createElement("button", {
     className: `btn ${exMode === "claude" ? "active" : ""}`,
     onClick: () => setExMode("claude")
-  }, settings.claudeName, " \u51FA\u984C")), exMode === "user" && /*#__PURE__*/React.createElement("div", {
+  }, "Reply", settings.claudeIcon), /*#__PURE__*/React.createElement("button", {
+    className: `btn ${exMode === "user" ? "active" : ""}`,
+    onClick: () => setExMode("user")
+  }, settings.userIcon, "Ask")), exMode === "user" && /*#__PURE__*/React.createElement("div", {
     className: "exchange-card"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1669,9 +1803,48 @@ function App() {
       color: "var(--muted)",
       marginBottom: 8
     }
-  }, settings.claudeName, " \u554F\uFF1A"), /*#__PURE__*/React.createElement("div", {
+  }, settings.claudeName, " \u554F\uFF1A ", pendingCount > 0 && `${pendingPos} / ${pendingCount}`), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn small",
+    disabled: pendingCount <= 1,
+    onClick: e => {
+      e.stopPropagation();
+      setPendingIdx(i => pendingCount ? (i - 1 + pendingCount) % pendingCount : 0);
+    },
+    style: {
+      fontSize: 12,
+      padding: "4px 10px",
+      opacity: pendingCount <= 1 ? .35 : 1
+    }
+  }, "‹"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      textAlign: "center",
+      fontSize: 10,
+      color: "var(--muted)",
+      letterSpacing: 1
+    }
+  }, "待回應 Pending"), /*#__PURE__*/React.createElement("button", {
+    className: "btn small",
+    disabled: pendingCount <= 1,
+    onClick: e => {
+      e.stopPropagation();
+      setPendingIdx(i => pendingCount ? (i + 1) % pendingCount : 0);
+    },
+    style: {
+      fontSize: 12,
+      padding: "4px 10px",
+      opacity: pendingCount <= 1 ? .35 : 1
+    }
+  }, "›")), /*#__PURE__*/React.createElement("div", {
     className: "q-display"
-  }, "\"", pending.theme, "\""), /*#__PURE__*/React.createElement("div", {
+  }, "#", pending.id, "  \"", pending.theme, "\""), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
       color: "#7a7068",
