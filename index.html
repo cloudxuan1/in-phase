@@ -205,6 +205,8 @@
   .tag-section { margin-bottom: 8px; }
   .tag-section-label { font-size: 10px; letter-spacing: 1px; }
   .tag-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .tag-chip { display: inline-flex; align-items: center; gap: 3px; padding: 3px 8px; font-size: 11px; border-radius: 99px; background: var(--light); color: var(--text); border: 1px solid var(--shadow); }
+  .tag-chip-x { cursor: pointer; color: var(--muted); background: none; border: none; padding: 0 0 0 2px; font-size: 12px; line-height: 1; font-family: inherit; }
 </style>
 </head>
 <body>
@@ -405,6 +407,25 @@ function getSongTags(song) {
   if (!t) return [];
   if (Array.isArray(t.list)) return t.list;
   return Object.entries(t).filter(([, v]) => v && typeof v === 'string').map(([, v]) => v);
+}
+const DEFAULT_QUICK_TAGS = [
+  "深夜 Late Night", "温柔 Tender", "晴 Sunny", "午後 Afternoon",
+  "清晨 Dawn", "開心 Happy", "風 Windy", "傍晚 Dusk"
+];
+function computeQuickTags(pairs, limit = 8) {
+  const freq = {};
+  (pairs || []).forEach(p => {
+    [...getSongTags(p.claude_song), ...getSongTags(p.user_song)].forEach(tag => {
+      freq[tag] = (freq[tag] || 0) + 1;
+    });
+  });
+  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).map(([t]) => t);
+  const result = sorted.slice(0, limit);
+  for (const t of DEFAULT_QUICK_TAGS) {
+    if (result.length >= limit) break;
+    if (!result.includes(t)) result.push(t);
+  }
+  return result;
 }
 const EMOJIS = ["🍊", "🎧", "🌙", "☁️", "✨", "🌥️", "🦀", "💫", "🫐", "🍀", "🦊", "🍓", "🌼", "🌸", "🍟", "🔮", "🥑", "🧸", "🫧"];
 function splitIconSymbols(v) {
@@ -1326,8 +1347,8 @@ function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [exNote, setExNote] = useState("");
-  const [exTags, setExTags] = useState({});
-  const [exCust, setExCust] = useState("");
+  const [exTagList, setExTagList] = useState([]);
+  const [exTagInput, setExTagInput] = useState("");
   const refs = useRef({});
   const loadData = useCallback(async () => {
     try {
@@ -1448,8 +1469,8 @@ function App() {
     setExArtist("");
     setExAlbum("");
     setExNote("");
-    setExTags({});
-    setExCust("");
+    setExTagList([]);
+    setExTagInput("");
     setExCover("");
     setExLink("");
     setSearchResults([]);
@@ -1464,20 +1485,8 @@ function App() {
       cover: exCover,
       link: exLink,
       note: exNote.trim(),
-      tags: {
-        ...exTags
-      }
+      tags: { list: exTagList }
     };
-    if (exCust.trim()) {
-      song.tags.custom = exCust.trim();
-      if (!customTags.includes(exCust.trim())) {
-        const nt = [...customTags, exCust.trim()];
-        setCustomTags(nt);
-        api("/settings", "PATCH", {
-          custom_tags: nt
-        });
-      }
-    }
     const r = await api("/pairs", "POST", {
       theme: exTheme.trim(),
       asked_by: "user",
@@ -1498,20 +1507,8 @@ function App() {
       cover: exCover,
       link: exLink,
       note: exNote.trim(),
-      tags: {
-        ...exTags
-      }
+      tags: { list: exTagList }
     };
-    if (exCust.trim()) {
-      song.tags.custom = exCust.trim();
-      if (!customTags.includes(exCust.trim())) {
-        const nt = [...customTags, exCust.trim()];
-        setCustomTags(nt);
-        api("/settings", "PATCH", {
-          custom_tags: nt
-        });
-      }
-    }
     const r = await api(`/pairs/${pid}`, "PATCH", {
       user_song: song
     });
@@ -1565,48 +1562,64 @@ function App() {
     className: "submit-btn",
     onClick: loadData
   }, "\u91CD\u8A66 Retry")));
-  const tagSel = () => /*#__PURE__*/React.createElement(React.Fragment, null, Object.entries(TAGS).map(([cat, tags]) => /*#__PURE__*/React.createElement("div", {
-    key: cat,
-    className: "tag-section"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "tag-section-label",
-    style: {
-      color: TAG_COLORS[cat]
-    }
-  }, TAG_LABELS[cat]), /*#__PURE__*/React.createElement("div", {
-    className: "tag-row"
-  }, tags.map(tag => {
-    const col = TAG_COLORS[cat];
-    const on = exTags[cat] === tag;
-    return /*#__PURE__*/React.createElement("button", {
-      key: tag,
-      className: "filter-tag",
-      onClick: () => setExTags(p => ({
-        ...p,
-        [cat]: on ? undefined : tag
-      })),
-      style: {
-        border: `1px solid ${on ? col : "var(--shadow)"}`,
-        background: on ? col : "transparent",
-        color: on ? "var(--cream)" : "#8a7a68"
-      }
-    }, tag);
-  })))), /*#__PURE__*/React.createElement("div", {
-    className: "tag-section"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "tag-section-label",
-    style: {
-      color: "var(--custom)"
-    }
-  }, "\u81EA\u5B9A\u7FA9 Custom"), /*#__PURE__*/React.createElement("input", {
-    className: "input",
-    style: {
-      marginTop: 4
-    },
-    placeholder: "Custom tag...",
-    value: exCust,
-    onChange: e => setExCust(e.target.value)
-  })));
+  const tagComposer = () => {
+    const quickTags = computeQuickTags(pairs);
+    const addTag = raw => {
+      const tag = raw.trim();
+      if (!tag || exTagList.includes(tag) || exTagList.length >= 8) return;
+      setExTagList(p => [...p, tag]);
+    };
+    const atLimit = exTagList.length >= 8;
+    const tagBtn = (tag) => {
+      const on = exTagList.includes(tag);
+      return React.createElement("button", {
+        key: tag,
+        className: "filter-tag",
+        disabled: !on && atLimit,
+        onClick: () => on ? setExTagList(p => p.filter(t => t !== tag)) : addTag(tag),
+        style: {
+          border: "1px solid " + (on ? "var(--accent)" : "var(--shadow)"),
+          background: on ? "var(--accent)" : "transparent",
+          color: on ? "var(--cream)" : "var(--muted)",
+          opacity: !on && atLimit ? 0.4 : 1
+        }
+      }, tag);
+    };
+    return React.createElement(React.Fragment, null,
+      exTagList.length > 0 && React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 6 } },
+        exTagList.map((tag, i) => React.createElement("span", { key: i, className: "tag-chip" },
+          tag,
+          React.createElement("button", {
+            className: "tag-chip-x",
+            onClick: () => setExTagList(p => p.filter((_, j) => j !== i))
+          }, "\u00D7")
+        ))
+      ),
+      React.createElement("input", {
+        className: "input",
+        style: { marginBottom: 6 },
+        placeholder: atLimit ? "\u5DF2\u9054\u4E0A\u9650 8 \u500B" : "\u8F38\u5165\u6A19\u7C3A\uFF0C\u56DE\u8ECA\u6216\u9017\u865F\u65B0\u589E\u2026",
+        disabled: atLimit,
+        value: exTagInput,
+        onChange: e => {
+          const v = e.target.value;
+          if (v.endsWith(",") || v.endsWith("\uFF0C")) { addTag(v.slice(0, -1)); setExTagInput(""); }
+          else setExTagInput(v);
+        },
+        onKeyDown: e => {
+          if (e.key === "Enter") { e.preventDefault(); addTag(exTagInput); setExTagInput(""); }
+        }
+      }),
+      React.createElement("div", { className: "tag-section" },
+        React.createElement("span", { className: "tag-section-label", style: { color: "var(--muted)" } }, "\u5E38\u7528 Quick"),
+        React.createElement("div", { className: "tag-row" }, quickTags.map(tagBtn))
+      ),
+      Object.entries(TAGS).map(([cat, tags]) => React.createElement("div", { key: cat, className: "tag-section" },
+        React.createElement("span", { className: "tag-section-label", style: { color: "var(--muted)" } }, TAG_LABELS[cat]),
+        React.createElement("div", { className: "tag-row" }, tags.map(tagBtn))
+      ))
+    );
+  };
   const colClass = ms === "claude" ? "hide-user" : ms === "user" ? "hide-claude" : "";
   const activePairId = exp ? Number(String(exp).split("-")[1]) : null;
   return /*#__PURE__*/React.createElement("div", {
@@ -1895,7 +1908,7 @@ function App() {
     placeholder: "\u4F60\u548C\u9019\u9996\u6B4C\u7684\u6545\u4E8B...",
     value: exNote,
     onChange: e => setExNote(e.target.value)
-  }), tagSel(), /*#__PURE__*/React.createElement("button", {
+  }), tagComposer(), /*#__PURE__*/React.createElement("button", {
     className: "submit-btn",
     disabled: !exTheme.trim() || !exSong.trim() || !exArtist.trim() || sub,
     onClick: submitExchange
@@ -2051,7 +2064,7 @@ function App() {
     placeholder: "\u4F60\u548C\u9019\u9996\u6B4C\u7684\u6545\u4E8B...",
     value: exNote,
     onChange: e => setExNote(e.target.value)
-  }), tagSel(), /*#__PURE__*/React.createElement("button", {
+  }), tagComposer(), /*#__PURE__*/React.createElement("button", {
     className: "submit-btn",
     disabled: !exSong.trim() || !exArtist.trim() || sub,
     onClick: () => respondToQ(pending.id)
