@@ -400,6 +400,12 @@ const TAG_COLORS = {
   mood: "var(--mood)",
   custom: "var(--custom)"
 };
+function getSongTags(song) {
+  const t = song?.tags;
+  if (!t) return [];
+  if (Array.isArray(t.list)) return t.list;
+  return Object.entries(t).filter(([, v]) => v && typeof v === 'string').map(([, v]) => v);
+}
 const EMOJIS = ["🍊", "🎧", "🌙", "☁️", "✨", "🌥️", "🦀", "💫", "🫐", "🍀", "🦊", "🍓", "🌼", "🌸", "🍟", "🔮", "🥑", "🧸", "🫧"];
 function splitIconSymbols(v) {
   const t = String(v || "").trim();
@@ -795,18 +801,15 @@ function SongCard({
     style: {
       marginTop: 6
     }
-  }, Object.entries(song.tags || {}).map(([cat, tag]) => {
-    const col = TAG_COLORS[cat] || TAG_COLORS.custom;
-    return /*#__PURE__*/React.createElement("span", {
-      key: cat,
-      className: "tag",
-      style: {
-        border: `1px solid ${col}`,
-        color: col,
-        background: `${col}11`
-      }
-    }, tag);
-  })), expanded && /*#__PURE__*/React.createElement("div", {
+  }, getSongTags(song).map((tag, i) => /*#__PURE__*/React.createElement("span", {
+    key: i,
+    className: "tag",
+    style: {
+      border: "1px solid var(--shadow)",
+      color: "var(--muted)",
+      background: "transparent"
+    }
+  }, tag))), expanded && /*#__PURE__*/React.createElement("div", {
     onClick: e => e.stopPropagation()
   }, /*#__PURE__*/React.createElement("div", {
     className: "pair-header"
@@ -1371,8 +1374,8 @@ function App() {
   }, [pairs, pendingIdx]);
   const toggleTag = t => setAt(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t]);
   const filtered = at.length === 0 ? pairs : pairs.filter(p => {
-    const tags = [...Object.values(p.claude_song?.tags || {}), ...Object.values(p.user_song?.tags || {})];
-    return at.every(t => tags.includes(t));
+    const tags = [...getSongTags(p.claude_song), ...getSongTags(p.user_song)];
+    return at.some(t => tags.includes(t));
   });
   const jump = useCallback(id => {
     const pair = pairs.find(p => p.id === id);
