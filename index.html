@@ -844,7 +844,7 @@ function SongCard({
         const cat = getTagCategory(tag);
         return /*#__PURE__*/React.createElement("span", {
           key: i, className: "tag",
-          style: { border: `1px solid ${TAG_COLORS[cat]}`, color: TAG_COLORS[cat], background: TAG_BG[cat] }
+          style: { border: `1px solid ${TAG_COLORS[cat]}`, color: TAG_COLORS[cat] }
         }, tag);
       }),
       extra > 0 && /*#__PURE__*/React.createElement("span", {
@@ -1594,28 +1594,37 @@ function App() {
     const atLimit = exTagList.length >= 8;
     const tagBtn = (tag) => {
       const on = exTagList.includes(tag);
+      const col = TAG_COLORS[getTagCategory(tag)];
+      const bg = TAG_BG[getTagCategory(tag)];
       return React.createElement("button", {
         key: tag,
         className: "filter-tag",
         disabled: !on && atLimit,
         onClick: () => on ? setExTagList(p => p.filter(t => t !== tag)) : addTag(tag),
         style: {
-          border: "1px solid " + (on ? "var(--accent)" : "var(--shadow)"),
-          background: on ? "var(--accent)" : "transparent",
-          color: on ? "var(--cream)" : "var(--muted)",
+          border: `1px solid ${col}`,
+          background: on ? col : bg,
+          color: on ? "var(--cream)" : col,
           opacity: !on && atLimit ? 0.4 : 1
         }
       }, tag);
     };
     return React.createElement(React.Fragment, null,
       exTagList.length > 0 && React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 6 } },
-        exTagList.map((tag, i) => React.createElement("span", { key: i, className: "tag-chip" },
-          tag,
-          React.createElement("button", {
-            className: "tag-chip-x",
-            onClick: () => setExTagList(p => p.filter((_, j) => j !== i))
-          }, "\u00D7")
-        ))
+        exTagList.map((tag, i) => {
+          const col = TAG_COLORS[getTagCategory(tag)];
+          return React.createElement("span", {
+            key: i, className: "tag-chip",
+            style: { background: col, color: "var(--cream)", border: `1px solid ${col}` }
+          },
+            tag,
+            React.createElement("button", {
+              className: "tag-chip-x",
+              style: { color: "var(--cream)" },
+              onClick: () => setExTagList(p => p.filter((_, j) => j !== i))
+            }, "\u00D7")
+          );
+        })
       ),
       React.createElement("input", {
         className: "input",
