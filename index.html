@@ -405,7 +405,7 @@ const TAG_COLORS = {
 function getSongTags(song) {
   const t = song?.tags;
   if (!t) return [];
-  if (Array.isArray(t.list)) return t.list;
+  if (Array.isArray(t.list)) return t.list.filter(v => typeof v === 'string' && v.trim());
   return Object.entries(t).filter(([, v]) => v && typeof v === 'string').map(([, v]) => v);
 }
 const DEFAULT_QUICK_TAGS = [
@@ -1485,7 +1485,7 @@ function App() {
       cover: exCover,
       link: exLink,
       note: exNote.trim(),
-      tags: { list: exTagList }
+      tags: { list: exTagInput.trim() && !exTagList.includes(exTagInput.trim()) ? [...exTagList, exTagInput.trim()] : exTagList }
     };
     const r = await api("/pairs", "POST", {
       theme: exTheme.trim(),
@@ -1507,7 +1507,7 @@ function App() {
       cover: exCover,
       link: exLink,
       note: exNote.trim(),
-      tags: { list: exTagList }
+      tags: { list: exTagInput.trim() && !exTagList.includes(exTagInput.trim()) ? [...exTagList, exTagInput.trim()] : exTagList }
     };
     const r = await api(`/pairs/${pid}`, "PATCH", {
       user_song: song
