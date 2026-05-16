@@ -402,11 +402,24 @@ const TAG_COLORS = {
   mood: "var(--mood)",
   custom: "var(--custom)"
 };
+const TAG_BG = {
+  weather: "#6b9bd218",
+  place:   "#7bb86f18",
+  time:    "#d4a03c18",
+  mood:    "#c76b8a18",
+  custom:  "#a08cc418"
+};
 function getSongTags(song) {
   const t = song?.tags;
   if (!t) return [];
   if (Array.isArray(t.list)) return t.list.filter(v => typeof v === 'string' && v.trim());
   return Object.entries(t).filter(([, v]) => v && typeof v === 'string').map(([, v]) => v);
+}
+function getTagCategory(tag) {
+  for (const [cat, tags] of Object.entries(TAGS)) {
+    if (tags.includes(tag)) return cat;
+  }
+  return 'custom';
 }
 const DEFAULT_QUICK_TAGS = [
   "深夜 Late Night", "温柔 Tender", "晴 Sunny", "午後 Afternoon",
@@ -822,15 +835,24 @@ function SongCard({
     style: {
       marginTop: 6
     }
-  }, getSongTags(song).map((tag, i) => /*#__PURE__*/React.createElement("span", {
-    key: i,
-    className: "tag",
-    style: {
-      border: "1px solid var(--shadow)",
-      color: "var(--muted)",
-      background: "transparent"
-    }
-  }, tag))), expanded && /*#__PURE__*/React.createElement("div", {
+  }, (() => {
+    const all = getSongTags(song);
+    const vis = expanded ? all : all.slice(0, 4);
+    const extra = expanded ? 0 : Math.max(0, all.length - 4);
+    return [
+      ...vis.map((tag, i) => {
+        const cat = getTagCategory(tag);
+        return /*#__PURE__*/React.createElement("span", {
+          key: i, className: "tag",
+          style: { border: `1px solid ${TAG_COLORS[cat]}`, color: TAG_COLORS[cat], background: TAG_BG[cat] }
+        }, tag);
+      }),
+      extra > 0 && /*#__PURE__*/React.createElement("span", {
+        key: "x", className: "tag",
+        style: { border: "1px solid var(--shadow)", color: "var(--muted)" }
+      }, `+${extra}`)
+    ].filter(Boolean);
+  })()), expanded && /*#__PURE__*/React.createElement("div", {
     onClick: e => e.stopPropagation()
   }, /*#__PURE__*/React.createElement("div", {
     className: "pair-header"
