@@ -1025,10 +1025,9 @@ function SongCard({
   }, "\u21B5")))));
 }
 
-// ─── Tag Filter ────────────────────────────────────────────────────────
+// ─── Tag Filter ──────────────────────────────────────────────────────────────────────
 function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
   const [moreOpen, setMoreOpen] = useState(false);
-  const [moreQ, setMoreQ] = useState("");
   const [openGroup, setOpenGroup] = useState(null);
   const quickTags = computeQuickTags(pairs);
   const allCustomTags = computeAllCustomTags(pairs);
@@ -1047,17 +1046,9 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
   };
   const moreGroups = [
     ...Object.entries(TAGS).map(([cat, tags]) => ({ label: TAG_LABELS[cat], tags, cat })),
-    allCustomTags.length > 0 && { label: "\u81ea\u5b9a\u7fa9 Custom", tags: allCustomTags, cat: "custom" }
+    allCustomTags.length > 0 && { label: "自定義 Custom", tags: allCustomTags, cat: "custom" }
   ].filter(Boolean);
-  const hasQuery = moreQ.trim();
   const renderPanel = () => {
-    if (hasQuery) {
-      const allVis = moreGroups.flatMap(({ tags }) =>
-        tags.filter(t => t.toLowerCase().includes(hasQuery.toLowerCase()))
-      );
-      if (!allVis.length) return null;
-      return React.createElement("div", { className: "filter-group-row" }, allVis.map(tagBtn));
-    }
     const activeGroup = moreGroups.find(g => g.cat === openGroup);
     return React.createElement("div", { style: { position: "relative" } },
       React.createElement("div", { className: "filter-group-row" },
@@ -1073,53 +1064,42 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
         })
       ),
       activeGroup && React.createElement("div", { className: "filter-tag-panel" },
-        (() => {
-          const { tags, cat } = activeGroup;
-          const isCustom = cat === "custom";
-          const vis = isCustom ? tags.slice(0, 6) : tags;
-          const hint = isCustom && tags.length > 6
-            ? React.createElement("span", {
-                style: { fontSize: "10px", color: "var(--muted)", alignSelf: "center", whiteSpace: "nowrap" }
-              }, `+${tags.length - 6} 搜尋更多`)
-            : null;
-          return [...vis.map(tagBtn), hint];
-        })()
+        activeGroup.tags.map(tagBtn)
       )
     );
   };
+  const qLow = q.trim().toLowerCase();
+  const suggested = qLow
+    ? moreGroups.flatMap(({ tags }) => tags.filter(t => t.toLowerCase().includes(qLow)))
+    : [];
   return React.createElement(React.Fragment, null,
     React.createElement("div", { className: "filter-bar" },
       React.createElement("input", {
         className: "filter-search",
-        placeholder: "\u641c\u5c0b\u6b4c\u66f2\u3001\u6b4c\u624b\u3001\u6a19\u7c3a\u2026",
+        placeholder: "搜尋歌曲、歌手、標簺…",
         value: q,
         onChange: e => setQ(e.target.value)
       }),
+      suggested.length > 0 && React.createElement("div", { className: "filter-row" }, suggested.map(tagBtn)),
       activeTags.length > 0 && React.createElement("div", { className: "filter-row" },
         activeTags.map(tag => {
           const col = TAG_COLORS[getTagCategory(tag)];
           return React.createElement("span", {
             key: tag, className: "filter-selected-chip",
             style: { background: col, border: `1px solid ${col}`, color: "var(--cream)" }
-          }, tag, React.createElement("button", { className: "filter-chip-x", onClick: () => toggleTag(tag) }, "\u00d7"));
+          }, tag, React.createElement("button", { className: "filter-chip-x", onClick: () => toggleTag(tag) }, "×"));
         }),
-        React.createElement("button", { className: "filter-clear", onClick: clearTags }, "\u00d7")
+        React.createElement("button", { className: "filter-clear", onClick: clearTags }, "×")
       ),
       React.createElement("div", { className: "filter-row" },
         quickTags.map(tagBtn),
         React.createElement("button", {
           className: "filter-more-btn" + (moreOpen ? " open" : ""),
           onClick: () => setMoreOpen(o => !o)
-        }, moreOpen ? "\u66f4\u591a \u25b4" : "\u66f4\u591a \u25be")
+        }, moreOpen ? "更多 ▴" : "更多 ▾")
       )
     ),
     moreOpen && React.createElement("div", { className: "filter-more-panel" },
-      React.createElement("input", {
-        className: "filter-more-search",
-        placeholder: "\u641c\u5c0b\u6a19\u7c3a\u2026",
-        value: moreQ,
-        onChange: e => setMoreQ(e.target.value)
-      }),
       renderPanel()
     )
   );
