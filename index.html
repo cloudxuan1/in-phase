@@ -1052,14 +1052,11 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
   const hasQuery = moreQ.trim();
   const renderPanel = () => {
     if (hasQuery) {
-      return moreGroups.map(({ label, tags, cat }) => {
-        const vis = tags.filter(t => t.toLowerCase().includes(hasQuery.toLowerCase()));
-        if (!vis.length) return null;
-        return React.createElement("div", { key: cat },
-          React.createElement("span", { className: "filter-group-label" }, label),
-          React.createElement("div", { className: "filter-group-row" }, vis.map(tagBtn))
-        );
-      });
+      const allVis = moreGroups.flatMap(({ tags }) =>
+        tags.filter(t => t.toLowerCase().includes(hasQuery.toLowerCase()))
+      );
+      if (!allVis.length) return null;
+      return React.createElement("div", { className: "filter-group-row" }, allVis.map(tagBtn));
     }
     const activeGroup = moreGroups.find(g => g.cat === openGroup);
     return React.createElement("div", { style: { position: "relative" } },
@@ -1721,7 +1718,7 @@ function App() {
         React.createElement("div", { className: "tag-row" }, quickTags.map(tagBtn))
       ),
       Object.entries(TAGS).map(([cat, tags]) => React.createElement("div", { key: cat, className: "tag-section" },
-        React.createElement("span", { className: "tag-section-label", style: { color: "var(--muted)" } }, TAG_LABELS[cat]),
+        React.createElement("span", { className: "tag-section-label", style: { color: TAG_COLORS[cat] } }, TAG_LABELS[cat]),
         React.createElement("div", { className: "tag-row" }, tags.map(tagBtn))
       ))
     );
