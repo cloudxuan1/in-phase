@@ -1662,25 +1662,9 @@ function App() {
       }, tag);
     };
     return React.createElement(React.Fragment, null,
-      exTagList.length > 0 && React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 6 } },
-        exTagList.map((tag, i) => {
-          const col = TAG_COLORS[getTagCategory(tag)];
-          return React.createElement("span", {
-            key: i, className: "tag-chip",
-            style: { background: col, color: "var(--cream)", border: `1px solid ${col}` }
-          },
-            tag,
-            React.createElement("button", {
-              className: "tag-chip-x",
-              style: { color: "var(--cream)" },
-              onClick: () => setExTagList(p => p.filter((_, j) => j !== i))
-            }, "\u00D7")
-          );
-        })
-      ),
       React.createElement("input", {
         className: "input",
-        style: { marginBottom: 6 },
+        style: { marginBottom: exTagList.length > 0 ? 4 : 6 },
         placeholder: atLimit ? "\u5DF2\u9054\u4E0A\u9650 8 \u500B" : "\u8F38\u5165\u6A19\u7C3A\uFF0C\u56DE\u8ECA\u6216\u9017\u865F\u65B0\u589E\u2026",
         disabled: atLimit,
         value: exTagInput,
@@ -1693,8 +1677,24 @@ function App() {
           if (e.key === "Enter") { e.preventDefault(); addTag(exTagInput); setExTagInput(""); }
         }
       }),
+      exTagList.length > 0 && React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 6 } },
+        exTagList.map((tag, i) => {
+          const col = TAG_COLORS[getTagCategory(tag)];
+          return React.createElement("span", {
+            key: i, className: "tag-chip",
+            style: { background: `color-mix(in srgb, ${col} 18%, transparent)`, color: col, border: `1px solid ${col}` }
+          },
+            tag,
+            React.createElement("button", {
+              className: "tag-chip-x",
+              style: { color: col },
+              onClick: () => setExTagList(p => p.filter((_, j) => j !== i))
+            }, "\u00D7")
+          );
+        })
+      ),
       React.createElement("div", { className: "tag-section" },
-        React.createElement("span", { className: "tag-section-label", style: { color: "var(--muted)" } }, "\u5E38\u7528 Quick"),
+        React.createElement("span", { className: "tag-section-label", style: { color: "#c8934a" } }, "\u5E38\u7528 Quick"),
         React.createElement("div", { className: "tag-row" }, quickTags.map(tagBtn))
       ),
       Object.entries(TAGS).map(([cat, tags]) => React.createElement("div", { key: cat, className: "tag-section" },
