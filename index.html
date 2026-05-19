@@ -129,7 +129,11 @@
   .filter-bar { padding: 8px 16px 4px; display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid var(--light); }
   .filter-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
   .filter-tag { padding: 3px 8px; font-size: 10px; cursor: pointer; font-family: inherit; }
-  .filter-search { width: 100%; padding: 6px 10px; border: 1px solid var(--light); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; box-sizing: border-box; }
+  .filter-search-wrap { position: relative; }
+  .filter-search { width: 100%; padding: 6px 28px 6px 10px; border: 1px solid var(--light); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; box-sizing: border-box; }
+  .filter-search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; font-family: inherit; }
+  .filter-suggest-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50; background: var(--card); border: 2px solid var(--border); padding: 8px; box-shadow: 4px 4px 0 var(--shadow); display: flex; flex-wrap: wrap; gap: 4px; box-sizing: border-box; }
+  .filter-row-label { font-size: 10px; color: var(--muted); white-space: nowrap; }
   .filter-selected-chip { display: inline-flex; align-items: center; gap: 3px; padding: 3px 8px; font-size: 10px; border-radius: 99px; }
   .filter-chip-x { cursor: pointer; background: none; border: none; padding: 0 0 0 2px; font-size: 11px; line-height: 1; font-family: inherit; }
   .filter-more-btn { padding: 3px 8px; font-size: 10px; border: 1px solid var(--shadow); background: transparent; color: #8a7a68; cursor: pointer; font-family: inherit; }
@@ -1074,14 +1078,23 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
     : [];
   return React.createElement(React.Fragment, null,
     React.createElement("div", { className: "filter-bar" },
-      React.createElement("input", {
-        className: "filter-search",
-        placeholder: "搜尋歌曲、歌手、標簺…",
-        value: q,
-        onChange: e => setQ(e.target.value)
-      }),
-      suggested.length > 0 && React.createElement("div", { className: "filter-row" }, suggested.map(tagBtn)),
+      React.createElement("div", { className: "filter-search-wrap" },
+        React.createElement("input", {
+          className: "filter-search",
+          placeholder: "搜尋歌曲、歌手、標簺…",
+          value: q,
+          onChange: e => setQ(e.target.value)
+        }),
+        q && React.createElement("button", {
+          className: "filter-search-clear",
+          onClick: () => setQ("")
+        }, "×"),
+        suggested.length > 0 && React.createElement("div", { className: "filter-suggest-panel" },
+          suggested.map(tagBtn)
+        )
+      ),
       activeTags.length > 0 && React.createElement("div", { className: "filter-row" },
+        React.createElement("span", { className: "filter-row-label" }, "標籤："),
         activeTags.map(tag => {
           const col = TAG_COLORS[getTagCategory(tag)];
           return React.createElement("span", {
@@ -1092,6 +1105,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
         React.createElement("button", { className: "filter-clear", onClick: clearTags }, "×")
       ),
       React.createElement("div", { className: "filter-row" },
+        React.createElement("span", { className: "filter-row-label" }, "常用："),
         quickTags.map(tagBtn),
         React.createElement("button", {
           className: "filter-more-btn" + (moreOpen ? " open" : ""),
