@@ -437,14 +437,16 @@ function computeQuickTags(pairs, limit = 8) {
   }
   return result;
 }
-function computeCustomQuickTags(pairs, limit = 6) {
+function computeAllCustomTags(pairs) {
   const freq = {};
   (pairs || []).forEach(p => {
     [...getSongTags(p.claude_song), ...getSongTags(p.user_song)]
       .filter(tag => getTagCategory(tag) === 'custom')
       .forEach(tag => { freq[tag] = (freq[tag] || 0) + 1; });
   });
-  return Object.entries(freq).sort((a, b) => b[1] - a[1]).map(([t]) => t).slice(0, limit);
+  return Object.entries(freq)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([t]) => t);
 }
 const EMOJIS = ["🍊", "🎧", "🌙", "☁️", "✨", "🌥️", "🦀", "💫", "🫐", "🍀", "🦊", "🍓", "🌼", "🌸", "🍟", "🔮", "🥑", "🧸", "🫧"];
 function splitIconSymbols(v) {
@@ -1024,7 +1026,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [moreQ, setMoreQ] = useState("");
   const quickTags = computeQuickTags(pairs);
-  const customQuickTags = computeCustomQuickTags(pairs);
+  const allCustomTags = computeAllCustomTags(pairs);
   const tagBtn = tag => {
     const on = activeTags.includes(tag);
     const col = TAG_COLORS[getTagCategory(tag)];
@@ -1040,7 +1042,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
   };
   const moreGroups = [
     ...Object.entries(TAGS).map(([cat, tags]) => ({ label: TAG_LABELS[cat], tags, cat })),
-    customQuickTags.length > 0 && { label: "\u81ea\u5b9a\u7fa9 Custom", tags: customQuickTags, cat: "custom" }
+    allCustomTags.length > 0 && { label: "\u81ea\u5b9a\u7fa9 Custom", tags: allCustomTags, cat: "custom" }
   ].filter(Boolean);
   return React.createElement(React.Fragment, null,
     React.createElement("div", { className: "filter-bar" },
@@ -1445,10 +1447,11 @@ function App() {
   const toggleTag = t => setAt(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t]);
   const filtered = pairs.filter(p => {
     const songTags = [...getSongTags(p.claude_song), ...getSongTags(p.user_song)];
+    const commentText = (comments[p.id] || []).map(c => c.text).join(" ");
     const haystack = [
       p.theme, p.claude_song?.title, p.claude_song?.artist, p.claude_song?.note,
       p.user_song?.title, p.user_song?.artist, p.user_song?.note,
-      ...songTags
+      commentText, ...songTags
     ].filter(Boolean).join(" ").toLowerCase();
     const searchMatch = !q.trim() || haystack.includes(q.trim().toLowerCase());
     const tagMatch = at.length === 0 || at.some(t => songTags.includes(t));
