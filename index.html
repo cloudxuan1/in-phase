@@ -408,6 +408,12 @@ function getSongTags(song) {
   if (Array.isArray(t.list)) return t.list.filter(v => typeof v === 'string' && v.trim());
   return Object.entries(t).filter(([, v]) => v && typeof v === 'string').map(([, v]) => v);
 }
+function getTagCategory(tag) {
+  for (const [cat, tags] of Object.entries(TAGS)) {
+    if (tags.includes(tag)) return cat;
+  }
+  return 'custom';
+}
 const DEFAULT_QUICK_TAGS = [
   "深夜 Late Night", "温柔 Tender", "晴 Sunny", "午後 Afternoon",
   "清晨 Dawn", "開心 Happy", "風 Windy", "傍晚 Dusk"
@@ -822,15 +828,24 @@ function SongCard({
     style: {
       marginTop: 6
     }
-  }, getSongTags(song).map((tag, i) => /*#__PURE__*/React.createElement("span", {
-    key: i,
-    className: "tag",
-    style: {
-      border: "1px solid var(--shadow)",
-      color: "var(--muted)",
-      background: "transparent"
-    }
-  }, tag))), expanded && /*#__PURE__*/React.createElement("div", {
+  }, (() => {
+    const all = getSongTags(song);
+    const vis = expanded ? all : all.slice(0, 4);
+    const extra = expanded ? 0 : Math.max(0, all.length - 4);
+    return [
+      ...vis.map((tag, i) => {
+        const cat = getTagCategory(tag);
+        return /*#__PURE__*/React.createElement("span", {
+          key: i, className: "tag",
+          style: { border: `1px solid ${TAG_COLORS[cat]}`, color: TAG_COLORS[cat] }
+        }, tag);
+      }),
+      extra > 0 && /*#__PURE__*/React.createElement("span", {
+        key: "x", className: "tag",
+        style: { border: "1px solid var(--shadow)", color: "var(--muted)" }
+      }, `+${extra}`)
+    ].filter(Boolean);
+  })()), expanded && /*#__PURE__*/React.createElement("div", {
     onClick: e => e.stopPropagation()
   }, /*#__PURE__*/React.createElement("div", {
     className: "pair-header"
@@ -1572,28 +1587,36 @@ function App() {
     const atLimit = exTagList.length >= 8;
     const tagBtn = (tag) => {
       const on = exTagList.includes(tag);
+      const col = TAG_COLORS[getTagCategory(tag)];
       return React.createElement("button", {
         key: tag,
         className: "filter-tag",
         disabled: !on && atLimit,
         onClick: () => on ? setExTagList(p => p.filter(t => t !== tag)) : addTag(tag),
         style: {
-          border: "1px solid " + (on ? "var(--accent)" : "var(--shadow)"),
-          background: on ? "var(--accent)" : "transparent",
-          color: on ? "var(--cream)" : "var(--muted)",
+          border: `1px solid ${on ? col : "var(--shadow)"}`,
+          background: on ? col : "transparent",
+          color: on ? "var(--cream)" : "#8a7a68",
           opacity: !on && atLimit ? 0.4 : 1
         }
       }, tag);
     };
     return React.createElement(React.Fragment, null,
       exTagList.length > 0 && React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 6 } },
-        exTagList.map((tag, i) => React.createElement("span", { key: i, className: "tag-chip" },
-          tag,
-          React.createElement("button", {
-            className: "tag-chip-x",
-            onClick: () => setExTagList(p => p.filter((_, j) => j !== i))
-          }, "\u00D7")
-        ))
+        exTagList.map((tag, i) => {
+          const col = TAG_COLORS[getTagCategory(tag)];
+          return React.createElement("span", {
+            key: i, className: "tag-chip",
+            style: { background: col, color: "var(--cream)", border: `1px solid ${col}` }
+          },
+            tag,
+            React.createElement("button", {
+              className: "tag-chip-x",
+              style: { color: "var(--cream)" },
+              onClick: () => setExTagList(p => p.filter((_, j) => j !== i))
+            }, "\u00D7")
+          );
+        })
       ),
       React.createElement("input", {
         className: "input",
