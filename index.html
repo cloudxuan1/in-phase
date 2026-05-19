@@ -139,6 +139,7 @@
   .filter-more-search { width: 100%; padding: 5px 10px; border: 1px solid var(--light); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; margin-bottom: 8px; box-sizing: border-box; }
   .filter-group-label { font-size: 10px; letter-spacing: 1px; color: var(--muted); }
   .filter-group-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 8px; }
+  .filter-tag-panel { background: var(--card); border: 2px solid var(--border); padding: 8px; box-shadow: 4px 4px 0 var(--shadow); display: flex; flex-wrap: wrap; gap: 4px; width: 100%; max-width: 100%; box-sizing: border-box; margin-top: 4px; margin-bottom: 4px; }
   .filter-cat-btn { padding: 4px 10px; font-size: 10px; border: 1px solid var(--shadow); background: transparent; color: #8a7a68; cursor: pointer; font-family: inherit; }
   .filter-cat-btn.has-active { border-color: var(--accent); background: #fce4d6; color: var(--accent); }
   .filter-cat-btn.open { background: var(--accent); border-color: var(--accent); color: var(--cream); }
@@ -1075,8 +1076,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
         })
       ),
       activeGroup && React.createElement("div", {
-        key: "tags", className: "filter-group-row",
-        style: { width: "100%", maxWidth: "100%", boxSizing: "border-box" }
+        key: "tags", className: "filter-tag-panel"
       }, (() => {
         const { tags, cat } = activeGroup;
         const isCustom = cat === "custom";
