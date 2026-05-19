@@ -1595,16 +1595,15 @@ function App() {
     const tagBtn = (tag) => {
       const on = exTagList.includes(tag);
       const col = TAG_COLORS[getTagCategory(tag)];
-      const bg = TAG_BG[getTagCategory(tag)];
       return React.createElement("button", {
         key: tag,
         className: "filter-tag",
         disabled: !on && atLimit,
         onClick: () => on ? setExTagList(p => p.filter(t => t !== tag)) : addTag(tag),
         style: {
-          border: `1px solid ${col}`,
-          background: on ? col : bg,
-          color: on ? "var(--cream)" : col,
+          border: `1px solid ${on ? col : "var(--shadow)"}`,
+          background: on ? col : "transparent",
+          color: on ? "var(--cream)" : "#8a7a68",
           opacity: !on && atLimit ? 0.4 : 1
         }
       }, tag);
