@@ -140,6 +140,7 @@
   .filter-group-label { font-size: 10px; letter-spacing: 1px; color: var(--muted); }
   .filter-group-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 8px; }
   .filter-group-btn { display: flex; align-items: center; width: 100%; padding: 5px 0; font-size: 10px; letter-spacing: 1px; background: none; border: none; border-top: 1px solid var(--light); cursor: pointer; font-family: inherit; text-align: left; }
+  .filter-cat-chip { padding: 3px 8px; font-size: 10px; border-radius: 99px; border: 1px solid; cursor: pointer; background: transparent; font-family: inherit; }
 
   /* Exchange */
   .exchange { max-width: 600px; margin: 0 auto; padding: 16px; }
@@ -1022,7 +1023,7 @@ function SongCard({
   }, "\u21B5")))));
 }
 
-// ─── Tag Filter ─────────────────────────────────────────────────────────
+// ─── Tag Filter ────────────────────────────────────────────────────────
 function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [moreQ, setMoreQ] = useState("");
@@ -1044,41 +1045,58 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
   };
   const moreGroups = [
     ...Object.entries(TAGS).map(([cat, tags]) => ({ label: TAG_LABELS[cat], tags, cat })),
-    allCustomTags.length > 0 && { label: "自定義 Custom", tags: allCustomTags, cat: "custom" }
+    allCustomTags.length > 0 && { label: "\u81ea\u5b9a\u7fa9 Custom", tags: allCustomTags, cat: "custom" }
   ].filter(Boolean);
   const hasQuery = moreQ.trim();
-  const renderGroups = () => moreGroups.map(({ label, tags, cat }, idx) => {
-    const isCustom = cat === 'custom';
-    const isOpen = openGroup === cat;
-    const col = TAG_COLORS[cat];
+  const renderPanel = () => {
     if (hasQuery) {
-      const vis = tags.filter(t => t.toLowerCase().includes(hasQuery.toLowerCase()));
-      if (!vis.length) return null;
-      return React.createElement("div", { key: cat },
-        React.createElement("span", { className: "filter-group-label" }, label),
-        React.createElement("div", { className: "filter-group-row" }, vis.map(tagBtn))
-      );
+      return moreGroups.map(({ label, tags, cat }) => {
+        const vis = tags.filter(t => t.toLowerCase().includes(hasQuery.toLowerCase()));
+        if (!vis.length) return null;
+        return React.createElement("div", { key: cat },
+          React.createElement("span", { className: "filter-group-label" }, label),
+          React.createElement("div", { className: "filter-group-row" }, vis.map(tagBtn))
+        );
+      });
     }
-    const tagsVis = isCustom ? tags.slice(0, 6) : tags;
-    const hint = isCustom && tags.length > 6
-      ? React.createElement("span", {
-          style: { fontSize: "10px", color: "var(--muted)", alignSelf: "center", whiteSpace: "nowrap" }
-        }, `+${tags.length - 6} 搜尋更多`)
-      : null;
-    return React.createElement("div", { key: cat },
-      React.createElement("button", {
-        className: "filter-group-btn",
-        style: { borderTopColor: idx === 0 ? "transparent" : "var(--light)", color: isOpen ? col : "var(--muted)" },
-        onClick: () => setOpenGroup(g => g === cat ? null : cat)
-      }, label, React.createElement("span", { style: { marginLeft: "auto" } }, isOpen ? "▴" : "▾")),
-      isOpen && React.createElement("div", { className: "filter-group-row" }, tagsVis.map(tagBtn), hint)
-    );
-  });
+    const activeGroup = moreGroups.find(g => g.cat === openGroup);
+    return [
+      React.createElement("div", { key: "cats", className: "filter-group-row" },
+        moreGroups.map(({ label, cat }) => {
+          const isOpen = openGroup === cat;
+          const col = TAG_COLORS[cat];
+          return React.createElement("button", {
+            key: cat, className: "filter-cat-chip",
+            style: {
+              border: `1px solid ${isOpen ? col : "var(--shadow)"}`,
+              background: isOpen ? col : "transparent",
+              color: isOpen ? "var(--cream)" : "#8a7a68"
+            },
+            onClick: () => setOpenGroup(g => g === cat ? null : cat)
+          }, label);
+        })
+      ),
+      activeGroup && React.createElement("div", {
+        key: "tags", className: "filter-group-row",
+        style: { width: "100%", maxWidth: "100%", boxSizing: "border-box" }
+      }, (() => {
+        const { tags, cat } = activeGroup;
+        const isCustom = cat === "custom";
+        const vis = isCustom ? tags.slice(0, 6) : tags;
+        const hint = isCustom && tags.length > 6
+          ? React.createElement("span", {
+              style: { fontSize: "10px", color: "var(--muted)", alignSelf: "center", whiteSpace: "nowrap" }
+            }, `+${tags.length - 6} \u641c\u5c0b\u66f4\u591a`)
+          : null;
+        return [...vis.map(tagBtn), hint];
+      })())
+    ].filter(Boolean);
+  };
   return React.createElement(React.Fragment, null,
     React.createElement("div", { className: "filter-bar" },
       React.createElement("input", {
         className: "filter-search",
-        placeholder: "搜尋歌曲、歌手、標簺…",
+        placeholder: "\u641c\u5c0b\u6b4c\u66f2\u3001\u6b4c\u624b\u3001\u6a19\u7c3a\u2026",
         value: q,
         onChange: e => setQ(e.target.value)
       }),
@@ -1088,26 +1106,26 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
           return React.createElement("span", {
             key: tag, className: "filter-selected-chip",
             style: { background: col, border: `1px solid ${col}`, color: "var(--cream)" }
-          }, tag, React.createElement("button", { className: "filter-chip-x", onClick: () => toggleTag(tag) }, "×"));
+          }, tag, React.createElement("button", { className: "filter-chip-x", onClick: () => toggleTag(tag) }, "\u00d7"));
         }),
-        React.createElement("button", { className: "filter-clear", onClick: clearTags }, "×")
+        React.createElement("button", { className: "filter-clear", onClick: clearTags }, "\u00d7")
       ),
       React.createElement("div", { className: "filter-row" },
         quickTags.map(tagBtn),
         React.createElement("button", {
           className: "filter-more-btn" + (moreOpen ? " open" : ""),
           onClick: () => setMoreOpen(o => !o)
-        }, moreOpen ? "更多 ▴" : "更多 ▾")
+        }, moreOpen ? "\u66f4\u591a \u25b4" : "\u66f4\u591a \u25be")
       )
     ),
     moreOpen && React.createElement("div", { className: "filter-more-panel" },
       React.createElement("input", {
         className: "filter-more-search",
-        placeholder: "搜尋標簺…",
+        placeholder: "\u641c\u5c0b\u6a19\u7c3a\u2026",
         value: moreQ,
         onChange: e => setMoreQ(e.target.value)
       }),
-      renderGroups()
+      renderPanel()
     )
   );
 }
