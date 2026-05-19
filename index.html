@@ -139,7 +139,7 @@
   .filter-more-search { width: 100%; padding: 5px 10px; border: 1px solid var(--light); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; margin-bottom: 8px; box-sizing: border-box; }
   .filter-group-label { font-size: 10px; letter-spacing: 1px; color: var(--muted); }
   .filter-group-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 8px; }
-  .filter-tag-panel { background: var(--card); border: 2px solid var(--border); padding: 8px; box-shadow: 4px 4px 0 var(--shadow); display: flex; flex-wrap: wrap; gap: 4px; width: 100%; max-width: 100%; box-sizing: border-box; margin-top: 4px; margin-bottom: 4px; }
+  .filter-tag-panel { position: absolute; top: 100%; left: 0; z-index: 50; min-width: 200px; max-width: min(260px, calc(100vw - 32px)); background: var(--card); border: 2px solid var(--border); padding: 8px; box-shadow: 4px 4px 0 var(--shadow); display: flex; flex-wrap: wrap; gap: 4px; box-sizing: border-box; }
   .filter-cat-btn { padding: 4px 10px; font-size: 10px; border: 1px solid var(--shadow); background: transparent; color: #8a7a68; cursor: pointer; font-family: inherit; }
   .filter-cat-btn.has-active { border-color: var(--accent); background: #fce4d6; color: var(--accent); }
   .filter-cat-btn.open { background: var(--accent); border-color: var(--accent); color: var(--cream); }
@@ -1062,8 +1062,8 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
       });
     }
     const activeGroup = moreGroups.find(g => g.cat === openGroup);
-    return [
-      React.createElement("div", { key: "cats", className: "filter-group-row" },
+    return React.createElement("div", { style: { position: "relative" } },
+      React.createElement("div", { className: "filter-group-row" },
         moreGroups.map(({ label, tags, cat }) => {
           const isOpen = openGroup === cat;
           const activeCount = activeTags.filter(t => tags.includes(t)).length;
@@ -1075,20 +1075,20 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
           }, label, hasActive && !isOpen ? ` (${activeCount})` : null);
         })
       ),
-      activeGroup && React.createElement("div", {
-        key: "tags", className: "filter-tag-panel"
-      }, (() => {
-        const { tags, cat } = activeGroup;
-        const isCustom = cat === "custom";
-        const vis = isCustom ? tags.slice(0, 6) : tags;
-        const hint = isCustom && tags.length > 6
-          ? React.createElement("span", {
-              style: { fontSize: "10px", color: "var(--muted)", alignSelf: "center", whiteSpace: "nowrap" }
-            }, `+${tags.length - 6} \u641c\u5c0b\u66f4\u591a`)
-          : null;
-        return [...vis.map(tagBtn), hint];
-      })())
-    ].filter(Boolean);
+      activeGroup && React.createElement("div", { className: "filter-tag-panel" },
+        (() => {
+          const { tags, cat } = activeGroup;
+          const isCustom = cat === "custom";
+          const vis = isCustom ? tags.slice(0, 6) : tags;
+          const hint = isCustom && tags.length > 6
+            ? React.createElement("span", {
+                style: { fontSize: "10px", color: "var(--muted)", alignSelf: "center", whiteSpace: "nowrap" }
+              }, `+${tags.length - 6} 搜尋更多`)
+            : null;
+          return [...vis.map(tagBtn), hint];
+        })()
+      )
+    );
   };
   return React.createElement(React.Fragment, null,
     React.createElement("div", { className: "filter-bar" },
