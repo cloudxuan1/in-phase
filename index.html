@@ -126,15 +126,19 @@
   .comment-input button { padding: 6px 12px; border: 2px solid var(--border); background: var(--accent); color: var(--cream); cursor: pointer; font-size: 11px; font-family: inherit; box-shadow: 2px 2px 0 #7a7068; }
 
   /* Filter */
-  .filter-bar { padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-  .filter-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-right: 2px; }
-  .filter-cat { position: relative; display: inline-block; }
-  .filter-cat-btn { padding: 4px 10px; font-size: 10px; border: 1px solid var(--shadow); background: transparent; color: #8a7a68; cursor: pointer; font-family: inherit; }
-  .filter-cat-btn.has-active { border-color: var(--accent); background: #fce4d6; color: var(--accent); }
-  .filter-cat-btn.open { background: var(--accent); color: var(--cream); }
-  .filter-dropdown { position: absolute; top: 100%; left: 0; margin-top: 4px; background: var(--card); border: 2px solid var(--border); padding: 8px; box-shadow: 4px 4px 0 var(--shadow); z-index: 50; display: flex; flex-wrap: wrap; gap: 4px; min-width: 200px; }
+  .filter-bar { padding: 8px 16px 4px; display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid var(--light); }
+  .filter-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
   .filter-tag { padding: 3px 8px; font-size: 10px; cursor: pointer; font-family: inherit; }
-  .clear-btn { padding: 4px 8px; font-size: 10px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; font-family: inherit; }
+  .filter-search { width: 100%; padding: 6px 10px; border: 1px solid var(--light); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; box-sizing: border-box; }
+  .filter-selected-chip { display: inline-flex; align-items: center; gap: 3px; padding: 3px 8px; font-size: 10px; border-radius: 99px; }
+  .filter-chip-x { cursor: pointer; background: none; border: none; padding: 0 0 0 2px; font-size: 11px; line-height: 1; font-family: inherit; color: var(--cream); }
+  .filter-more-btn { padding: 3px 8px; font-size: 10px; border: 1px solid var(--shadow); background: transparent; color: #8a7a68; cursor: pointer; font-family: inherit; }
+  .filter-more-btn.open { background: var(--accent); border-color: var(--accent); color: var(--cream); }
+  .filter-clear { padding: 3px 8px; font-size: 10px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; font-family: inherit; }
+  .filter-more-panel { padding: 8px 16px 4px; border-top: 1px dashed var(--light); }
+  .filter-more-search { width: 100%; padding: 5px 10px; border: 1px solid var(--light); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; margin-bottom: 8px; box-sizing: border-box; }
+  .filter-group-label { font-size: 10px; letter-spacing: 1px; color: var(--muted); }
+  .filter-group-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 8px; }
 
   /* Exchange */
   .exchange { max-width: 600px; margin: 0 auto; padding: 16px; }
@@ -432,6 +436,15 @@ function computeQuickTags(pairs, limit = 8) {
     if (!result.includes(t)) result.push(t);
   }
   return result;
+}
+function computeCustomQuickTags(pairs, limit = 6) {
+  const freq = {};
+  (pairs || []).forEach(p => {
+    [...getSongTags(p.claude_song), ...getSongTags(p.user_song)]
+      .filter(tag => getTagCategory(tag) === 'custom')
+      .forEach(tag => { freq[tag] = (freq[tag] || 0) + 1; });
+  });
+  return Object.entries(freq).sort((a, b) => b[1] - a[1]).map(([t]) => t).slice(0, limit);
 }
 const EMOJIS = ["🍊", "🎧", "🌙", "☁️", "✨", "🌥️", "🦀", "💫", "🫐", "🍀", "🦊", "🍓", "🌼", "🌸", "🍟", "🔮", "🥑", "🧸", "🫧"];
 function splitIconSymbols(v) {
@@ -1007,52 +1020,72 @@ function SongCard({
 }
 
 // ─── Tag Filter ─────────────────────────────────────────────────────────
-function TagFilter({
-  activeTags,
-  toggleTag,
-  clearTags,
-  customTags
-}) {
-  const [oc, setOc] = useState(null);
-  const all = {
-    ...TAGS
+function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [moreQ, setMoreQ] = useState("");
+  const quickTags = computeQuickTags(pairs);
+  const customQuickTags = computeCustomQuickTags(pairs);
+  const tagBtn = tag => {
+    const on = activeTags.includes(tag);
+    const col = TAG_COLORS[getTagCategory(tag)];
+    return React.createElement("button", {
+      key: tag, className: "filter-tag",
+      onClick: () => toggleTag(tag),
+      style: {
+        border: `1px solid ${on ? col : "var(--shadow)"}`,
+        background: on ? col : "transparent",
+        color: on ? "var(--cream)" : "#8a7a68"
+      }
+    }, tag);
   };
-  if (customTags?.length) all.custom = customTags;
-  return /*#__PURE__*/React.createElement("div", {
-    className: "filter-bar"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "filter-label"
-  }, "FILTER"), Object.entries(all).map(([cat, tags]) => {
-    const isOpen = oc === cat,
-      active = tags.filter(t => activeTags.includes(t));
-    return /*#__PURE__*/React.createElement("div", {
-      key: cat,
-      className: "filter-cat"
-    }, /*#__PURE__*/React.createElement("button", {
-      className: `filter-cat-btn ${isOpen ? "open" : ""} ${active.length ? "has-active" : ""}`,
-      onClick: () => setOc(isOpen ? null : cat)
-    }, TAG_LABELS[cat] || "自定義 Custom", " ", active.length > 0 && `(${active.length})`), isOpen && /*#__PURE__*/React.createElement("div", {
-      className: "filter-dropdown"
-    }, tags.map(tag => {
-      const col = TAG_COLORS[cat] || TAG_COLORS.custom;
-      const on = activeTags.includes(tag);
-      return /*#__PURE__*/React.createElement("button", {
-        key: tag,
-        className: "filter-tag",
-        onClick: () => toggleTag(tag),
-        style: {
-          border: `1px solid ${on ? col : "var(--shadow)"}`,
-          background: on ? col : "transparent",
-          color: on ? "var(--cream)" : "#8a7a68"
-        }
-      }, tag);
-    })));
-  }), activeTags.length > 0 && /*#__PURE__*/React.createElement("button", {
-    className: "clear-btn",
-    onClick: clearTags
-  }, "\u2715"));
+  const moreGroups = [
+    ...Object.entries(TAGS).map(([cat, tags]) => ({ label: TAG_LABELS[cat], tags, cat })),
+    customQuickTags.length > 0 && { label: "\u81ea\u5b9a\u7fa9 Custom", tags: customQuickTags, cat: "custom" }
+  ].filter(Boolean);
+  return React.createElement(React.Fragment, null,
+    React.createElement("div", { className: "filter-bar" },
+      React.createElement("input", {
+        className: "filter-search",
+        placeholder: "\u641c\u5c0b\u6b4c\u66f2\u3001\u6b4c\u624b\u3001\u6a19\u7c3a\u2026",
+        value: q,
+        onChange: e => setQ(e.target.value)
+      }),
+      activeTags.length > 0 && React.createElement("div", { className: "filter-row" },
+        activeTags.map(tag => {
+          const col = TAG_COLORS[getTagCategory(tag)];
+          return React.createElement("span", {
+            key: tag, className: "filter-selected-chip",
+            style: { background: col, border: `1px solid ${col}`, color: "var(--cream)" }
+          }, tag, React.createElement("button", { className: "filter-chip-x", onClick: () => toggleTag(tag) }, "\u00d7"));
+        }),
+        React.createElement("button", { className: "filter-clear", onClick: clearTags }, "\u00d7")
+      ),
+      React.createElement("div", { className: "filter-row" },
+        quickTags.map(tagBtn),
+        React.createElement("button", {
+          className: "filter-more-btn" + (moreOpen ? " open" : ""),
+          onClick: () => setMoreOpen(o => !o)
+        }, moreOpen ? "\u66f4\u591a \u25b4" : "\u66f4\u591a \u25be")
+      )
+    ),
+    moreOpen && React.createElement("div", { className: "filter-more-panel" },
+      React.createElement("input", {
+        className: "filter-more-search",
+        placeholder: "\u641c\u5c0b\u6a19\u7c3a\u2026",
+        value: moreQ,
+        onChange: e => setMoreQ(e.target.value)
+      }),
+      moreGroups.map(({ label, tags, cat }) => {
+        const vis = moreQ.trim() ? tags.filter(t => t.toLowerCase().includes(moreQ.trim().toLowerCase())) : tags;
+        if (!vis.length) return null;
+        return React.createElement("div", { key: cat },
+          React.createElement("span", { className: "filter-group-label" }, label),
+          React.createElement("div", { className: "filter-group-row" }, vis.map(tagBtn))
+        );
+      })
+    )
+  );
 }
-
 // ─── History Card ───────────────────────────────────────────────────────
 function HistCard({
   pair: p,
@@ -1335,6 +1368,7 @@ function App() {
   const [page, setPage] = useState("home");
   const [exp, setExp] = useState(null);
   const [at, setAt] = useState([]);
+  const [q, setQ] = useState("");
   const [ms, setMs] = useState("both");
   const [scrollTop, setScrollTop] = useState(false);
   const [showSet, setShowSet] = useState(false);
@@ -1409,9 +1443,16 @@ function App() {
     }
   }, [pairs, pendingIdx]);
   const toggleTag = t => setAt(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t]);
-  const filtered = at.length === 0 ? pairs : pairs.filter(p => {
-    const tags = [...getSongTags(p.claude_song), ...getSongTags(p.user_song)];
-    return at.some(t => tags.includes(t));
+  const filtered = pairs.filter(p => {
+    const songTags = [...getSongTags(p.claude_song), ...getSongTags(p.user_song)];
+    const haystack = [
+      p.theme, p.claude_song?.title, p.claude_song?.artist, p.claude_song?.note,
+      p.user_song?.title, p.user_song?.artist, p.user_song?.note,
+      ...songTags
+    ].filter(Boolean).join(" ").toLowerCase();
+    const searchMatch = !q.trim() || haystack.includes(q.trim().toLowerCase());
+    const tagMatch = at.length === 0 || at.some(t => songTags.includes(t));
+    return searchMatch && tagMatch;
   });
   const jump = useCallback(id => {
     const pair = pairs.find(p => p.id === id);
@@ -1706,7 +1747,9 @@ function App() {
     activeTags: at,
     toggleTag: toggleTag,
     clearTags: () => setAt([]),
-    customTags: customTags
+    q: q,
+    setQ: setQ,
+    pairs: pairs
   }), /*#__PURE__*/React.createElement("div", {
     className: "mobile-switcher"
   }, /*#__PURE__*/React.createElement("button", {
