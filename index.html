@@ -139,8 +139,9 @@
   .filter-more-search { width: 100%; padding: 5px 10px; border: 1px solid var(--light); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; margin-bottom: 8px; box-sizing: border-box; }
   .filter-group-label { font-size: 10px; letter-spacing: 1px; color: var(--muted); }
   .filter-group-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 8px; }
-  .filter-group-btn { display: flex; align-items: center; width: 100%; padding: 5px 0; font-size: 10px; letter-spacing: 1px; background: none; border: none; border-top: 1px solid var(--light); cursor: pointer; font-family: inherit; text-align: left; }
-  .filter-cat-chip { padding: 3px 8px; font-size: 10px; border-radius: 99px; border: 1px solid; cursor: pointer; background: transparent; font-family: inherit; }
+  .filter-cat-btn { padding: 4px 10px; font-size: 10px; border: 1px solid var(--shadow); background: transparent; color: #8a7a68; cursor: pointer; font-family: inherit; }
+  .filter-cat-btn.has-active { border-color: var(--accent); background: #fce4d6; color: var(--accent); }
+  .filter-cat-btn.open { background: var(--accent); border-color: var(--accent); color: var(--cream); }
 
   /* Exchange */
   .exchange { max-width: 600px; margin: 0 auto; padding: 16px; }
@@ -1062,18 +1063,15 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
     const activeGroup = moreGroups.find(g => g.cat === openGroup);
     return [
       React.createElement("div", { key: "cats", className: "filter-group-row" },
-        moreGroups.map(({ label, cat }) => {
+        moreGroups.map(({ label, tags, cat }) => {
           const isOpen = openGroup === cat;
-          const col = TAG_COLORS[cat];
+          const activeCount = activeTags.filter(t => tags.includes(t)).length;
+          const hasActive = activeCount > 0;
+          const cls = "filter-cat-btn" + (isOpen ? " open" : "") + (hasActive && !isOpen ? " has-active" : "");
           return React.createElement("button", {
-            key: cat, className: "filter-cat-chip",
-            style: {
-              border: `1px solid ${isOpen ? col : "var(--shadow)"}`,
-              background: isOpen ? col : "transparent",
-              color: isOpen ? "var(--cream)" : "#8a7a68"
-            },
+            key: cat, className: cls,
             onClick: () => setOpenGroup(g => g === cat ? null : cat)
-          }, label);
+          }, label, hasActive && !isOpen ? ` (${activeCount})` : null);
         })
       ),
       activeGroup && React.createElement("div", {
