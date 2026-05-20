@@ -154,11 +154,32 @@ custom groups：scene / texture / memory / other（展示层分类，不写进�
 
 ## 已知问题（待处理）
 
-### iPhone Safari 布局（优先级高）
-- 总览卡片横向溢出屏幕边缘
-- 顶部 header 区域错位
-- 展开卡片（放大详情）变形
-- 修复时注意：不要加多层 `position: sticky`，不要用全局 `min-width:0` / `overflow` 收口
+### iPhone Safari 展开卡片触发整页缩放（优先级高，未解决）
+
+**症状**：手机上点开卡片展开详情，顶部 header/nav 会缩小变形，整页被 Safari 自动缩放。
+
+**根因（已确认）**：`.columns` 是 `display:flex`，`.col` 有 `flex:1` 但没有 `min-width:0`。展开卡片时某个子元素的 min-content-width 超出列宽，撑宽 `.col`，两列合计 > 视口，Safari 缩页。
+
+**已试过且失败的方案（不要再试）**：
+- PR#5：全局 `.col { min-width:0 }` → 两列失衡，展开交互坏掉（被 revert）
+- PR#6：sticky header / layout shell → 只遮症状，不解根因（被 revert）
+- PR#7 (V4)：expanded detail 改 `position:absolute; top:100%` → detail 覆盖下方卡片，原地展开感消失（被 revert）
+- PR#10 (V5)：`.col { min-width:0 }` + `.theme-title` flex 规则 → 列失衡 + 留言 input 坏掉（被 revert）
+- PR#12 (V6)：只加 `.theme-title { min-width:0 }`、`.comment-input input { min-width:0 }`、`.card.expanded .input { box-sizing:border-box }` → Safari 仍缩页
+- V6b：在 V6 基础上加 `.col { overflow-x:hidden }` → 卡片展开后视觉上不再变大（overflow 把内容裁掉了）
+
+**当前 main 状态**：PR#4 干净基线（Filter UI 完成），以上所有改动已全部 revert。
+
+**下一步必须先做诊断，再改代码**：
+1. 用 Mac 连 iPhone，Safari 开发者工具 → Elements 面板，展开卡片时找到实际比视口宽的元素
+2. 或者加一段临时调试 JS，展开时把所有 `offsetWidth > window.innerWidth` 的元素打印到页面上
+3. 确认溢出元素后，只针对那个元素加约束，不要碰 `.col` 本身
+
+**已确认不能动的方向**：
+- 不加 `position:sticky` 多层吸顶
+- 不加全局 `overflow:hidden` / `overflow:clip`
+- 不让 expanded card 脱离 normal flow（破坏原地展开感）
+- 不加 `.col { min-width:0 }` 或 `.col { overflow-x:hidden }`（反复验证会破坏列宽平衡）
 
 ### 旧标签数据迁移问题
 旧数据格式：`{ "weather": "晴 Sunny", "mood": "懷念 Nostalgic" }`（带英文）
