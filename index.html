@@ -2269,40 +2269,54 @@ function App() {
 }
 ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(App, null));
 
-/* ===== TEMP DIAGNOSTIC — remove after Safari zoom root cause found ===== */
+/* ===== TEMP DIAGNOSTIC v2 — remove after Safari zoom root cause found ===== */
 (function() {
+  var INIT_VW = window.innerWidth; /* capture natural viewport width at page load */
+
   function scanOverflow() {
     var vw = window.innerWidth;
+    var scrollW = document.documentElement.scrollWidth;
     var hits = [];
+
     document.querySelectorAll('*').forEach(function(el) {
-      if (el.offsetWidth > vw) {
-        var cls = (el.className && typeof el.className === 'string')
-          ? el.className.trim().split(/\s+/).slice(0,3).join('.') : '';
-        hits.push(el.tagName + (cls ? '.' + cls : '') + ' → ' + el.offsetWidth + 'px (vw=' + vw + ')');
-      }
+      try {
+        var r = el.getBoundingClientRect();
+        /* right edge of this element extends past the original right viewport boundary */
+        if (r.right > INIT_VW + 1) {
+          var cls = (el.className && typeof el.className === 'string')
+            ? el.className.trim().split(/\s+/).slice(0, 3).join('.') : '';
+          hits.push(
+            el.tagName + (cls ? '.' + cls : '') +
+            ' right=' + Math.round(r.right) +
+            ' w=' + Math.round(r.width)
+          );
+        }
+      } catch(e) {}
     });
+
     var box = document.getElementById('__ovf_diag__');
     if (!box) {
       box = document.createElement('div');
       box.id = '__ovf_diag__';
       box.style.cssText = [
-        'position:fixed', 'top:0', 'left:0', 'right:0', 'z-index:999999',
-        'background:rgba(180,0,0,0.92)', 'color:#fff', 'font:bold 11px/1.5 monospace',
-        'padding:8px 10px', 'word-break:break-all',
-        'max-height:220px', 'overflow-y:auto', 'pointer-events:auto'
+        'position:fixed','top:0','left:0','right:0','z-index:999999',
+        'background:rgba(140,0,0,0.93)','color:#fff','font:bold 11px/1.6 monospace',
+        'padding:8px 10px','word-break:break-all',
+        'max-height:260px','overflow-y:auto','pointer-events:auto'
       ].join(';');
       box.addEventListener('click', function(e){ e.stopPropagation(); box.remove(); });
       document.body.appendChild(box);
     }
-    box.textContent = hits.length
-      ? '⚠ overflow (' + hits.length + ') — tap to dismiss\n' + hits.join('\n')
-      : '✓ no element wider than viewport (' + vw + 'px)';
+
+    var header = 'INIT_VW=' + INIT_VW + ' cur=' + vw + ' scrollW=' + scrollW + '\n';
+    box.textContent = header + (hits.length
+      ? '⚠ right-overflow (' + hits.length + '):\n' + hits.join('\n')
+      : '✓ no element past right edge');
   }
 
-  /* fire on every click (card toggle) + on class mutations */
-  document.addEventListener('click', function(){ setTimeout(scanOverflow, 350); }, true);
-  var mo = new MutationObserver(function(){ setTimeout(scanOverflow, 350); });
+  document.addEventListener('click', function(){ setTimeout(scanOverflow, 400); }, true);
+  var mo = new MutationObserver(function(){ setTimeout(scanOverflow, 400); });
   mo.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'] });
 })();
-/* ===== END TEMP DIAGNOSTIC ===== */
+/* ===== END TEMP DIAGNOSTIC v2 ===== */
 </script></body></html>
