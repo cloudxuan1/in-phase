@@ -208,9 +208,6 @@
     .columns.hide-user .col.user-col,
     .columns.hide-claude .divider,
     .columns.hide-user .divider { display: none; }
-    /* V4 verification: detach expanded detail from normal flow so it can't widen the column */
-    .card.expanded { position: relative; overflow: visible; z-index: 5; }
-    .expanded-detail { position: absolute; left: 0; right: 0; top: 100%; z-index: 10; background: var(--card); border: 1px solid var(--border); box-shadow: 0 4px 12px var(--shadow); padding: 0 14px 14px; }
   }
   .empty-state { text-align: center; padding: 60px 20px; color: #c4b4a0; }
   .empty-state .icon { font-size: 28px; margin-bottom: 12px; }
@@ -872,7 +869,6 @@ function SongCard({
       }, `+${extra}`)
     ].filter(Boolean);
   })()), expanded && /*#__PURE__*/React.createElement("div", {
-    className: "expanded-detail",
     onClick: e => e.stopPropagation()
   }, /*#__PURE__*/React.createElement("div", {
     className: "pair-header"
