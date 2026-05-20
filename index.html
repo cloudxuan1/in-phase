@@ -208,12 +208,16 @@
     .columns.hide-user .col.user-col,
     .columns.hide-claude .divider,
     .columns.hide-user .divider { display: none; }
-    /* R1: fix Safari input intrinsic min-width propagating up through .col */
+    /* defensive: keep content from re-expanding column once ratios are set */
     .comment-input input { min-width: 0; }
-    /* R2: fix long URLs/text in note causing min-content-width overflow */
     .note { overflow-wrap: anywhere; }
-    /* R3: prevent expanded card's min-content-width from driving .col flex sizing */
-    .card.expanded { contain: inline-size; }
+    .song-title { overflow-wrap: anywhere; }
+    /* explicit column ratios driven by which side is expanded */
+    .col { min-width: 0; }
+    .columns.left-expanded  .col.claude-col { flex-grow: 65; }
+    .columns.left-expanded  .col.user-col   { flex-grow: 35; }
+    .columns.right-expanded .col.claude-col { flex-grow: 35; }
+    .columns.right-expanded .col.user-col   { flex-grow: 65; }
   }
   .empty-state { text-align: center; padding: 60px 20px; color: #c4b4a0; }
   .empty-state .icon { font-size: 28px; margin-bottom: 12px; }
@@ -1781,6 +1785,7 @@ function App() {
     );
   };
   const colClass = ms === "claude" ? "hide-user" : ms === "user" ? "hide-claude" : "";
+  const expClass = !exp ? "" : String(exp).startsWith("c-") ? "left-expanded" : "right-expanded";
   const activePairId = exp ? Number(String(exp).split("-")[1]) : null;
   return /*#__PURE__*/React.createElement("div", {
     className: "wrap"
@@ -1870,7 +1875,7 @@ function App() {
       lineHeight: 1.8
     }
   }, "\u9084\u6C92\u6709\u6B4C\u66F2", /*#__PURE__*/React.createElement("br", null), "Go to Exchange to start!")), /*#__PURE__*/React.createElement("div", {
-    className: `columns ${colClass}`
+    className: `columns ${colClass} ${expClass}`
   }, /*#__PURE__*/React.createElement("div", {
     className: "col claude-col"
   }, /*#__PURE__*/React.createElement("div", {
@@ -2270,73 +2275,4 @@ function App() {
   }));
 }
 ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(App, null));
-
-/* ===== TEMP DIAGNOSTIC v3 — dump expanded card subtree widths ===== */
-(function() {
-  var INIT_VW = window.innerWidth;
-
-  function label(el) {
-    var cls = (el.className && typeof el.className === 'string')
-      ? el.className.trim().split(/\s+/).slice(0, 2).join('.') : '';
-    var txt = '';
-    if (el.children.length === 0 && el.textContent) {
-      txt = ' "' + el.textContent.trim().slice(0, 24).replace(/\s+/g, ' ') + '"';
-    }
-    return el.tagName + (cls ? '.' + cls : '') + txt;
-  }
-
-  function scan() {
-    var vw = window.innerWidth;
-    var scrollW = document.documentElement.scrollWidth;
-    var cols = document.querySelectorAll('.col');
-    var colInfo = [];
-    cols.forEach(function(c) {
-      colInfo.push((c.className || '') + '=' + c.offsetWidth + 'px');
-    });
-
-    var expanded = document.querySelector('.card.expanded');
-    var lines = [];
-
-    if (expanded) {
-      lines.push('— .card.expanded subtree (ow=offsetWidth, sw=scrollWidth) —');
-      function walk(el, depth) {
-        if (depth > 6) return;
-        var prefix = '·'.repeat(depth);
-        var ow = el.offsetWidth, sw = el.scrollWidth;
-        var flag = (sw > ow + 1) ? ' ⚠sw>ow' : '';
-        /* only show elements wider than 100px to keep output focused */
-        if (ow >= 100 || sw > ow + 1) {
-          lines.push(prefix + label(el) + ' ow=' + ow + ' sw=' + sw + flag);
-        }
-        Array.from(el.children).forEach(function(c) { walk(c, depth + 1); });
-      }
-      walk(expanded, 0);
-    } else {
-      lines.push('(no .card.expanded yet — tap a card)');
-    }
-
-    var box = document.getElementById('__ovf_diag__');
-    if (!box) {
-      box = document.createElement('div');
-      box.id = '__ovf_diag__';
-      box.style.cssText = [
-        'position:fixed','top:0','left:0','right:0','z-index:999999',
-        'background:rgba(20,40,80,0.95)','color:#fff','font:bold 10px/1.5 monospace',
-        'padding:6px 8px','white-space:pre-wrap','word-break:break-all',
-        'max-height:80vh','overflow-y:auto','pointer-events:auto'
-      ].join(';');
-      box.addEventListener('click', function(e){ e.stopPropagation(); box.remove(); });
-      document.body.appendChild(box);
-    }
-
-    var header = 'INIT_VW=' + INIT_VW + ' cur=' + vw + ' scrollW=' + scrollW + '\n'
-      + 'cols: ' + colInfo.join(' | ') + '\n';
-    box.textContent = header + lines.join('\n');
-  }
-
-  document.addEventListener('click', function(){ setTimeout(scan, 450); }, true);
-  var mo = new MutationObserver(function(){ setTimeout(scan, 450); });
-  mo.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'] });
-})();
-/* ===== END TEMP DIAGNOSTIC v3 ===== */
 </script></body></html>
