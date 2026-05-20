@@ -139,6 +139,28 @@ V5 要在设置页面里让用户可以自己增删改预设标签组的内容�
 
 ## 改动规范
 
-- 小改动（CSS 参数）：直接改，commit message 写清楚
 - 大改动（跨模块逻辑）：先描述方案让我确认，再动代码
 - 每次改动原子化，一个 commit 一件事，方便回退
+
+---
+
+## 部署与发布流程
+
+**站点**：https://calm-buttercream-7225c0.netlify.app/
+**类型**：静态单文件，Build command 留空，Publish directory 填 `.`
+
+### 代码改动流程（必须走 PR）
+
+1. 在独立分支开发
+2. 推送并开 PR（draft）
+3. Netlify 自动生成 Deploy Preview —— **在回复结尾附上 PR 链接**
+4. 等用户测试确认
+5. 用户确认后再 merge 到 main
+
+- 没有 preview 不要 merge，先说明原因和解决办法
+- 不要直接推 main（除非用户明确说可以）
+- 不要顺手重构、改 UI、改数据库、改环境变量或改部署配置
+
+### 纯文档改动（Claude.md 等）
+
+可以直接推 main，不需要走 PR 流程。
