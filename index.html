@@ -1056,23 +1056,36 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
     allCustomTags.length > 0 && { label: "自定義", tags: allCustomTags, cat: "custom" }
   ].filter(Boolean);
   const renderPanel = () => {
-    const activeGroup = moreGroups.find(g => g.cat === openGroup);
+    const activeGroup = moreGroups.find(g => g.cat === openGroup || (g.cat === "custom" && openGroup === "custom-expanded"));
     return React.createElement("div", { style: { position: "relative" } },
       React.createElement("div", { className: "filter-row", style: { marginBottom: 4 } },
         React.createElement("span", { className: "filter-row-label" }, "預設："),
         moreGroups.map(({ label, tags, cat }) => {
-          const isOpen = openGroup === cat;
+          const isOpen = openGroup === cat || (cat === "custom" && openGroup === "custom-expanded");
           const activeCount = activeTags.filter(t => tags.includes(t)).length;
           const hasActive = activeCount > 0;
           const cls = "filter-cat-btn" + (isOpen ? " open" : "") + (hasActive && !isOpen ? " has-active" : "");
           return React.createElement("button", {
             key: cat, className: cls,
-            onClick: () => setOpenGroup(g => g === cat ? null : cat)
+            onClick: () => setOpenGroup(g => (g === cat || g === "custom-expanded") ? null : cat)
           }, label, hasActive && !isOpen ? ` (${activeCount})` : null);
         })
       ),
       activeGroup && React.createElement("div", { className: "filter-tag-panel" },
-        activeGroup.tags.map(tagBtn)
+        (() => {
+          const tags = activeGroup.tags;
+          if (activeGroup.cat !== "custom" || tags.length <= 15) return tags.map(tagBtn);
+          const expanded = openGroup === "custom-expanded";
+          const visible = expanded ? tags : tags.slice(0, 15);
+          return [
+            ...visible.map(tagBtn),
+            React.createElement("button", {
+              key: "__more__", className: "filter-cat-btn",
+              style: { marginLeft: 2 },
+              onClick: e => { e.stopPropagation(); setOpenGroup(expanded ? "custom" : "custom-expanded"); }
+            }, expanded ? "收起 ▴" : `+${tags.length - 15} 更多 ▾`)
+          ];
+        })()
       )
     );
   };
