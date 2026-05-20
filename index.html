@@ -1048,7 +1048,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
       onClick: () => toggleTag(tag),
       style: {
         border: `1px solid ${on ? col : "var(--shadow)"}`,
-        background: on ? `color-mix(in srgb, ${col} 18%, transparent)` : "transparent",
+        background: on ? `color-mix(in srgb, ${col} 25%, transparent)` : "transparent",
         color: on ? col : "#8a7a68"
       }
     }, tag);
@@ -1152,7 +1152,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
           const col = TAG_COLORS[getTagCategory(tag)];
           return React.createElement("span", {
             key: tag, className: "filter-selected-chip",
-            style: { background: `color-mix(in srgb, ${col} 18%, transparent)`, border: `1px solid ${col}`, color: col }
+            style: { background: `color-mix(in srgb, ${col} 25%, transparent)`, border: `1px solid ${col}`, color: col }
           }, tag, React.createElement("button", { className: "filter-chip-x", style: { color: col }, onClick: () => toggleTag(tag) }, "×"));
         }),
         React.createElement("button", { className: "filter-clear", onClick: clearTags }, "×")
@@ -1722,7 +1722,7 @@ function App() {
         onClick: () => on ? setExTagList(p => p.filter(t => t !== tag)) : addTag(tag),
         style: {
           border: `1px solid ${on ? col : "var(--shadow)"}`,
-          background: on ? `color-mix(in srgb, ${col} 18%, transparent)` : "transparent",
+          background: on ? `color-mix(in srgb, ${col} 25%, transparent)` : "transparent",
           color: on ? col : "#8a7a68",
           opacity: !on && atLimit ? 0.4 : 1
         }
@@ -1749,7 +1749,7 @@ function App() {
           const col = TAG_COLORS[getTagCategory(tag)];
           return React.createElement("span", {
             key: i, className: "tag-chip",
-            style: { background: `color-mix(in srgb, ${col} 18%, transparent)`, color: col, border: `1px solid ${col}` }
+            style: { background: `color-mix(in srgb, ${col} 25%, transparent)`, color: col, border: `1px solid ${col}` }
           },
             tag,
             React.createElement("button", {
