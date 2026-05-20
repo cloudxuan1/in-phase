@@ -210,6 +210,8 @@
     .columns.hide-user .divider { display: none; }
     /* R1: fix Safari input intrinsic min-width propagating up through .col */
     .comment-input input { min-width: 0; }
+    /* R2: fix long URLs/text in note causing min-content-width overflow */
+    .note { overflow-wrap: anywhere; }
   }
   .empty-state { text-align: center; padding: 60px 20px; color: #c4b4a0; }
   .empty-state .icon { font-size: 28px; margin-bottom: 12px; }
