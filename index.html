@@ -1032,7 +1032,8 @@ function SongCard({
 // ─── Tag Filter ──────────────────────────────────────────────────────────────────────
 function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
   const [moreOpen, setMoreOpen] = useState(false);
-  const [openGroup, setOpenGroup] = useState(null);
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const wrapRef = React.useRef(null);
   const quickTags = computeQuickTags(pairs);
   const allCustomTags = computeAllCustomTags(pairs);
   const tagBtn = tag => {
@@ -1050,46 +1051,48 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
   };
   const moreGroups = [
     ...Object.entries(TAGS).map(([cat, tags]) => ({ label: TAG_LABELS[cat], tags, cat })),
-    allCustomTags.length > 0 && { label: "自定義 Custom", tags: allCustomTags, cat: "custom" }
+    allCustomTags.length > 0 && { label: "自定義", tags: allCustomTags, cat: "custom" }
   ].filter(Boolean);
-  const renderPanel = () => {
-    const activeGroup = moreGroups.find(g => g.cat === openGroup);
-    return React.createElement("div", { style: { position: "relative" } },
-      React.createElement("div", { className: "filter-group-row" },
-        moreGroups.map(({ label, tags, cat }) => {
-          const isOpen = openGroup === cat;
-          const activeCount = activeTags.filter(t => tags.includes(t)).length;
-          const hasActive = activeCount > 0;
-          const cls = "filter-cat-btn" + (isOpen ? " open" : "") + (hasActive && !isOpen ? " has-active" : "");
-          return React.createElement("button", {
-            key: cat, className: cls,
-            onClick: () => setOpenGroup(g => g === cat ? null : cat)
-          }, label, hasActive && !isOpen ? ` (${activeCount})` : null);
-        })
-      ),
-      activeGroup && React.createElement("div", { className: "filter-tag-panel" },
-        activeGroup.tags.map(tagBtn)
-      )
+  const renderPanel = () =>
+    React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 6 } },
+      moreGroups.map(({ label, tags, cat }) => {
+        const shortLabel = label.split(" ")[0];
+        const col = TAG_COLORS[cat] || TAG_COLORS.custom;
+        return React.createElement("div", { key: cat, className: "filter-row" },
+          React.createElement("span", { className: "filter-row-label", style: { color: col } }, shortLabel + "："),
+          tags.map(tagBtn)
+        );
+      })
     );
-  };
   const qLow = q.trim().toLowerCase();
   const suggested = qLow
     ? moreGroups.flatMap(({ tags }) => tags.filter(t => t.toLowerCase().includes(qLow)))
     : [];
+  const showSuggest = suggestOpen && suggested.length > 0;
+  React.useEffect(() => {
+    if (!showSuggest) return;
+    const handler = e => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setSuggestOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showSuggest]);
   return React.createElement(React.Fragment, null,
     React.createElement("div", { className: "filter-bar" },
-      React.createElement("div", { className: "filter-search-wrap" },
+      React.createElement("div", { className: "filter-search-wrap", ref: wrapRef },
         React.createElement("input", {
           className: "filter-search",
           placeholder: "搜尋歌曲、歌手、標簺…",
           value: q,
-          onChange: e => setQ(e.target.value)
+          onChange: e => { setQ(e.target.value); setSuggestOpen(true); }
         }),
         q && React.createElement("button", {
           className: "filter-search-clear",
-          onClick: () => setQ("")
+          onClick: () => { setQ(""); setSuggestOpen(false); }
         }, "×"),
-        suggested.length > 0 && React.createElement("div", { className: "filter-suggest-panel" },
+        showSuggest && React.createElement("div", { className: "filter-suggest-panel" },
           suggested.map(tagBtn)
         )
       ),
