@@ -1016,7 +1016,7 @@ function SongCard({
     className: `comment-row ${cm.sender}`
   }, /*#__PURE__*/React.createElement("div", {
     className: "comment-avatar"
-  }, cm.sender === "claude" ? settings.claudeIcon : settings.userIcon), /*#__PURE__*/React.createElement("div", {
+  }, firstIconSymbol(cm.sender === "claude" ? settings.claudeIcon : settings.userIcon)), /*#__PURE__*/React.createElement("div", {
     className: `comment-bubble ${cm.sender}`
   }, cm.text))), sideComments.length === 0 && /*#__PURE__*/React.createElement("div", {
     style: {
