@@ -1035,6 +1035,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
   const [openGroup, setOpenGroup] = useState(null);
   const [suggestOpen, setSuggestOpen] = useState(false);
   const wrapRef = React.useRef(null);
+  const morePanelRef = React.useRef(null);
   const quickTags = computeQuickTags(pairs);
   const allCustomTags = computeAllCustomTags(pairs);
   const tagBtn = tag => {
@@ -1090,6 +1091,16 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [showSuggest]);
+  React.useEffect(() => {
+    if (!openGroup) return;
+    const handler = e => {
+      if (morePanelRef.current && !morePanelRef.current.contains(e.target)) {
+        setOpenGroup(null);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [openGroup]);
   return React.createElement(React.Fragment, null,
     React.createElement("div", { className: "filter-bar" },
       React.createElement("div", { className: "filter-search-wrap", ref: wrapRef },
@@ -1127,7 +1138,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
         }, moreOpen ? "更多 ▴" : "更多 ▾")
       )
     ),
-    moreOpen && React.createElement("div", { className: "filter-more-panel" },
+    moreOpen && React.createElement("div", { className: "filter-more-panel", ref: morePanelRef },
       renderPanel()
     )
   );
