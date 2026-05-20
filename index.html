@@ -25,9 +25,11 @@
     background-image: radial-gradient(circle, var(--light) 1px, transparent 1px);
     background-size: 16px 16px; opacity: .4; pointer-events: none; z-index: 0;
   }
-  .wrap { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; overflow-x: clip; }
+  .wrap { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; }
 
   /* Header */
+  .top-shell { position: sticky; top: 0; z-index: 10; background: var(--bg); }
+  .content-shell { overflow-x: clip; }
   .header {
     text-align: center; padding: 28px 16px 12px; border-bottom: 2px dashed var(--shadow);
     min-height: 156px; display: flex; flex-direction: column; align-items: center;
@@ -1779,6 +1781,8 @@ function App() {
   return /*#__PURE__*/React.createElement("div", {
     className: "wrap"
   }, /*#__PURE__*/React.createElement("div", {
+    className: "top-shell"
+  }, /*#__PURE__*/React.createElement("div", {
     className: "header"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1854,7 +1858,9 @@ function App() {
   }))), /*#__PURE__*/React.createElement("button", {
     className: ms === "user" ? "active" : "",
     onClick: () => setMs("user")
-  }, settings.userName, " ", settings.userIcon)), pairs.length === 0 && /*#__PURE__*/React.createElement("div", {
+  }, settings.userName, " ", settings.userIcon)))), /*#__PURE__*/React.createElement("div", {
+    className: "content-shell"
+  }, page === "home" && /*#__PURE__*/React.createElement(React.Fragment, null, pairs.length === 0 && /*#__PURE__*/React.createElement("div", {
     className: "empty-state"
   }, /*#__PURE__*/React.createElement("div", {
     className: "icon"
@@ -2248,7 +2254,7 @@ function App() {
     pair: p,
     settings: settings,
     onClick: () => jump(p.id)
-  })))), /*#__PURE__*/React.createElement("div", {
+  }))))), /*#__PURE__*/React.createElement("div", {
     className: "footer"
   }, "CROSSTALK \xB7 \u266B"), scrollTop && /*#__PURE__*/React.createElement("button", {
     className: "scroll-top",
