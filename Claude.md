@@ -1,4 +1,4 @@
- CLAUDE.md — in-phase 项目说明
+# Claude.md — in-phase 项目说明
 
 ## 项目概述
 
@@ -6,50 +6,50 @@ in-phase 是一个双人音乐交换网站。两个人轮流出题（theme），
 部署在 GitHub Pages，数据存在 Supabase。
 名字含义：in-phase = 同相位，两个波完全同步才能叠加共振。
 
+---
+
+## 跟我协作的方式（每次新会话必读）
+
+我不写代码，我描述的是**想要的效果**。
+
+1. **我用大白话说的，往往就是答案。** 不要包装成多选题，不要拆成"你是想 X 还是 Y"。如果听不懂，用大白话复述给我确认，不要用 CSS 术语反问。
+
+2. **当我说"就这么简单"，相信我。** 我可能已经观察了几天。不要假设底层很复杂。
+
+3. **不要逐个修元素来追症状。** 我描述的是"现象"，你要找的是"为什么不符合产品意图"。如果一个修复需要 R1、R2、R3……，多半方向错了，先停下来问我意图。
+
+4. **解释问题时说视觉效果，不要说技术术语。** 不说"min-content-width"，说"展开的卡会变得和折叠的一样宽"。
+
+---
+
 ## 技术栈
 
 - 纯前端单文件：index.html（HTML + CSS + JS，React CDN）
 - 数据库：Supabase（project ref: kfgtrcdjusfljnvmwpsu）
 - 后端：Supabase Edge Function（/pairs /comments /settings /search）
 - 部署：GitHub Pages，push 到 main 自动部署
-- 协议：CC BY-NC 4.0
 
-## 文件结构
-
-```
-├── index.html          ← 唯一前端文件，所有代码都在这里
-├── CLAUDE.md           ← 本文件
-├── CLAUDE_INSTRUCTIONS.md ← 给 Supabase MCP 用的操作说明
-├── README.md
-├── LICENSE
-└── supabase/
-    ├── setup.sql       ← 建表 SQL
-    └── edge-function.ts ← Edge Function
-```
+---
 
 ## 设计系统
 
-所有颜色使用 CSS 变量，不要写死色值：
+所有颜色用 CSS 变量，不要写死色值：
 
 ```css
-/* 主色 */
---bg: #faf5ef;        --card: #fefbf6;
---border: #8a8078;    --accent: #f4845f;
---cream: #faf0e6;     --text: #5a534c;
---muted: #a0907e;     --light: #e8ddd0;
---tan: #d4a574;       --shadow: #d4c4b0;
-
-/* 标签颜色（v3.3 后统一用 --muted 淡底，以下保留备用） */
---weather: #6b9bd2;   --place: #7bb86f;
---time: #d4a03c;      --mood: #c76b8a;
---custom: #a08cc4;
+--bg: #faf5ef;     --card: #fefbf6;
+--border: #8a8078; --accent: #f4845f;
+--cream: #faf0e6;  --text: #5a534c;
+--muted: #a0907e;  --light: #e8ddd0;
+--tan: #d4a574;    --shadow: #d4c4b0;
 ```
 
 整体风格：暖色调、像素风细节、低饱和。不要引入高饱和或冷色调元素。
 
-## 数据库表
+---
 
-三张表，结构不要改：
+## 数据库（结构不能改）
+
+三张表：
 - `crosstalk_pairs` — 歌曲配对（theme, asked_by, claude_song, user_song）
 - `crosstalk_comments` — 留言（pair_id, side, sender, text）
 - `crosstalk_settings` — 设置（icon, custom_tags 等）
@@ -57,141 +57,83 @@ in-phase 是一个双人音乐交换网站。两个人轮流出题（theme），
 Song JSON 格式：
 ```json
 {
-  "title": "",
-  "artist": "",
-  "album": "",
-  "cover": "",
-  "link": "",
-  "note": "",
-  "tags": {
-    "weather": "晴 Sunny",
-    "mood": "温柔 Tender",
-    "custom": "自定义标签"
-  }
+  "title": "", "artist": "", "album": "", "cover": "", "link": "", "note": "",
+  "tags": { "list": ["标签1", "标签2"] }
 }
 ```
 
-## 标签系统 v3.3 重构
+旧格式（兼容）：`{ "tags": { "weather": "晴 Sunny", "mood": "懷念 Nostalgic" } }`
 
-### 核心原则
-- 存储自由化：tags.list 数组，不再按分类存储
-- 分组只管展示，不管存储
-- 筛选统一 OR 逻辑，不再跨组 AND
-- 必须兼容旧数据
-
-### 存储结构
-
-新格式：
-```json
-{ "tags": { "list": ["雨夜", "床", "深夜", "怀念"] } }
-```
-
-旧格式（继续兼容）：
-```json
-{ "tags": { "weather": "雨 Rainy", "place": "床 Bed", "mood": "懷念 Nostalgic", "custom": "想家" } }
-```
-
-统一函数 `getSongTags(song)` 把新旧格式都转成数组。后续所有渲染、筛选、统计都只用这个函数。
-
-### 分步执行（每步独立 commit）
-
-**Step 1：基础层**
-- 实现 getSongTags(song) 函数
-- 现有卡片显示改成用 getSongTags 读标签
-- 纯重构，用户看不到变化
-
-**Step 2：提交区**
-- 自由输入框（回车/逗号/中文逗号添加）
-- quick tags 横排（按历史使用频率取前 8，不足用默认补齐）
-- selected 标签带 × 删除
-- 每首歌最多 8 个标签
-- preset groups（weather/place/time/mood）折叠在"更多"里
-- DEFAULT_QUICK_TAGS 应从现有数据统计，不要拍脑袋
-
-**Step 3：卡片显示**
-- 统一胶囊样式，用 var(--muted) 淡底 + var(--text) 文字
-- 不按分类染色
-- 总览最多 4 个 + N，展开显示全部
-- 胶囊样式：圆角药丸，高度 24px，字号 12px，内边距 4px 10px
-
-**Step 4：Filter（已完成，merged to main）**
-- 统一为单一搜索框（移除 moreQ），输入时在搜索框下方浮出匹配标签建议 panel
-- 建议 panel 点击外部自动收起，搜索词保留
-- 「標籤：」行 + 「常用：」行，带行前缀标签
-- 更多面板：「預設：」行标签 + 分类 chip 折叠展开；标签卡片对齐点击的 chip，右侧溢出自动右对齐；点击外部自动收起
-- 自定义分类超 15 个折叠，可展开全部
-- 选中状态：25% 分类色淡底 + 彩色边框 + 彩色文字（替代实心填充）
-- 搜索范围：歌名、歌手、主题、note、标签、留言
-- 筛选逻辑：searchMatch && tagMatchAny（OR）
-
-### 分组定义（集中放在文件顶部常量区）
-
-preset groups：weather / place / time / mood
-custom groups：scene / texture / memory / other（展示层分类，不写进数据）
-不属于任何分组的标签归入 other
-
-### 不做的事（v3.3.1 再考虑）
-- Settings 里管理 preset tags / custom groups / quick defaults
+---
 
 ## 绝对不能动
 
-- 数据库表结构
-- Supabase Edge Function（edge-function.ts）
-- Supabase API 路径和连接配置
+- 数据库表结构 / Supabase Edge Function / Supabase API 路径
 - Reply / Ask 核心提交逻辑
-- ⇄ 配对跳转核心逻辑
+- ⇄ 配对跳转逻辑
 - 卡片双栏瀑布流总览布局
-- 删除功能
-- 留言系统
-- 交换记录点击逻辑
+- 删除功能 / 留言系统 / 交换记录点击逻辑
 
 ## 不要做的事
 
-- 不要加 position: sticky 多层吸顶（已验证 iPhone Safari 会错位）
-- 不要改 Settings emoji 网格（5x4，前 19 固定 + 第 20 格是 +）
+- 不要加 position: sticky 多层吸顶（iPhone Safari 会错位）
+- 不要改 Settings emoji 网格（5×4，前 19 固定 + 第 20 格是 +）
 - 不要修改 icon-preview 的 65px 宽度
 
-## 已解决问题（写在这里防止再绕弯路）
+---
 
-### iPhone Safari 展开卡片触发整页缩放（已解决，PR#13）
+## 已解决问题（防止绕弯路）
 
-**产品意图（最重要，先看这个）**：
-- 点开一张卡片，那一侧的列变大，另一侧的列变小，总宽不变
-- 顶部列名（"Claude" / "xuan"）跟着同一比例对齐
-- 不要让内容自动撑宽列，列宽由状态显式控制
+### ✅ iPhone Safari 展开卡片触发整页缩放（PR#13 已上线）
 
-**正确方案（已上线）**：
-- 列宽由展开状态显式控制，不让内容驱动
+**产品意图（最重要）**：
+- 点开一张卡片，那一侧的列变大，另一侧缩小，**总宽不变**
+- **顶部列名（"Claude" / "xuan"）要跟着同步缩放对齐** ← 这是关键，漏掉这里等于没修好
+- 列宽由状态显式控制，不让内容自动撑宽
+
+**正确方案**：
 - 默认 50/50；左展开 65/35；右展开 35/65
 - React 派生 className（`left-expanded` / `right-expanded`）加在 `.columns` 上
-- `.col { min-width: 0 }` 配合 `flex-grow` 比例 —— 关键语义反转：之前没有显式比例时 min-width:0 会塌列；有了显式比例后 min-width:0 反过来是保险，阻止内容撑宽已定好的列
-- 一并加 `.song-title` / `.note` / `.comment-input input` 的 overflow-wrap / min-width 防御
+- `.col { min-width: 0 }` 阻止内容撑宽已定好的列
+- `.song-title` / `.note` / `.comment-input input` 加 overflow-wrap / min-width 防御
 
-**不要再走的弯路（前后试过 3 个会话，都走偏了）**：
-- ❌ 不要逐个修 input / note / theme-title 的 min-width / word-break（治不完，根因不在这）
-- ❌ 不要 `contain: inline-size`（会让展开卡和折叠卡等宽，丢失放大效果）
-- ❌ 不要 `position: absolute / sticky`（破坏原地展开感）
-- ❌ 不要全局 `overflow: hidden`（裁掉内容）
-- ❌ 不要试图通过让 `.col` shrink 来解决（任何不带显式比例的 `.col { min-width:0 }` 都会塌列）
+**❌ 不要再走的弯路**：
+- 逐个修 input / note / theme-title 的 min-width / word-break（治不完，根因不在这）
+- `contain: inline-size`（展开卡和折叠卡会一样宽，丢失放大效果）
+- `position: absolute / sticky`（破坏原地展开感）
+- 全局 `overflow: hidden`（裁掉内容）
 
-**根因**：之前 `.col { flex: 1 }` + 无 `min-width: 0`，展开卡 min-content-width ≈ 319px 通过 flex auto-minimum-size 传递到列，撑成 335px，两列合计 > 视口 → Safari shrink-to-fit 触发，`window.innerWidth` 从 402 扩到 498。
+**根因**：列宽不该由内容控制，应该由状态控制。症状是"页面缩小"，真正问题是产品意图没有被理解。
 
-**关键决策记录**：症状是"页面缩小"，但真正问题是"列宽不该由内容控制，应该由状态控制"。先听产品意图，再决定技术方向；如果产品要的是显式比例，就不要去修 overflow。
+**教训**：用户说"顶部没有同步放大"已经是完整的答案——顶部列名也要跟着列宽比例走。这句话被忽略了多次，导致反复返工。下次听到这类描述，直接找顶部对应元素，不要只修卡片内部。
 
-### 旧标签数据迁移问题
-旧数据格式：`{ "weather": "晴 Sunny", "mood": "懷念 Nostalgic" }`（带英文）
-新标签格式：`"晴"`, `"懷念"`（纯中文）
+---
 
-现状：`getSongTags()` 能读出旧数据的字符串值（如 `"晴 Sunny"`），但和新标签 `"晴"` 是两个不同字符串，筛选时无法合并命中。
+### ⏳ 旧标签数据兼容（待处理）
 
-处理方案（v5 或单独 PR）：
-- 方案 A：SQL 批量 UPDATE，把旧标签字符串替换成新格式（需要手写映射表）
-- 方案 B：`getSongTags()` 里做 normalize，自动去掉末尾英文（trim + 正则），让旧数据展示和筛选都和新标签一致
-- 推荐方案 B，不改数据库，风险更低
+旧数据 `"晴 Sunny"` 和新标签 `"晴"` 是两个不同字符串，筛选时不能合并命中。
+
+推荐方案 B（不改数据库）：在 `getSongTags()` 里自动去掉末尾英文，让旧数据和新标签一致展示和筛选。
+
+---
+
+## 标签系统（v3.3，已完成）
+
+**已上线状态**：
+- 存储：`tags.list` 数组，旧格式自动兼容
+- 展示：统一胶囊样式（--muted 淡底 + --text 文字），不按分类染色，总览最多 4 个 + N
+- 提交：自由输入框（回车/逗号添加），quick tags 按历史频率前 8，每首歌最多 8 个标签
+- 搜索：单一搜索框，搜索范围覆盖歌名、歌手、主题、note、标签、留言，筛选逻辑 OR
+- `getSongTags(song)` 统一转换新旧格式，所有渲染/筛选/统计都用这个函数
+
+**分组定义**：
+- preset：weather / place / time / mood
+- custom（展示分类，不写进数据）：scene / texture / memory / other
+
+---
 
 ## 改动规范
 
-- 标签重构严格按 Step 1→2→3→4 顺序执行，每步独立 commit
-- 小改动（CSS 参数调整）：直接改，写清楚 commit message
-- 大改动（跨步骤的逻辑变更）：先出方案让我确认，再动代码
-- 每次改动尽量原子化，一个 commit 做一件事，方便回退
+- 小改动（CSS 参数）：直接改，commit message 写清楚
+- 大改动（跨模块逻辑）：先描述方案让我确认，再动代码
+- 每次改动原子化，一个 commit 一件事，方便回退
