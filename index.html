@@ -25,7 +25,7 @@
     background-image: radial-gradient(circle, var(--light) 1px, transparent 1px);
     background-size: 16px 16px; opacity: .4; pointer-events: none; z-index: 0;
   }
-  .wrap { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; }
+  .wrap { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; overflow-x: clip; }
 
   /* Header */
   .header {
@@ -62,7 +62,7 @@
 
   /* Columns */
   .columns { display: flex; gap: 0; padding: 0 12px 24px; min-height: 60vh; }
-  .col { flex: 1; padding: 0 8px; }
+  .col { flex: 1; padding: 0 8px; min-width: 0; }
   .col-label { text-align: center; font-size: 11px; letter-spacing: 3px; color: var(--muted); padding: 8px 0 12px; }
   .divider { width: 2px; margin: 0 4px; flex-shrink: 0; background: repeating-linear-gradient(to bottom, var(--shadow) 0, var(--shadow) 4px, transparent 4px, transparent 8px); }
 
@@ -70,7 +70,7 @@
   .card {
     background: var(--card); border: 2px solid var(--border); margin-bottom: 12px;
     padding: 14px; cursor: pointer; box-shadow: 3px 3px 0 var(--light);
-    transition: all .25s ease;
+    transition: all .25s ease; max-width: 100%; box-sizing: border-box;
   }
   .card:hover { transform: translateY(-2px); box-shadow: 4px 4px 0 var(--shadow); }
   .card.expanded { box-shadow: 4px 4px 0 var(--tan); transform: none; }
