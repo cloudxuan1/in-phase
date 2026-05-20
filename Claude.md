@@ -158,9 +158,19 @@ V5 要在设置页面里让用户可以自己增删改预设标签组的内容�
 5. 用户确认后再 merge 到 main
 
 - 没有 preview 不要 merge，先说明原因和解决办法
-- 不要直接推 main（除非用户明确说可以）
+- 简单改动可以问用户"这个直接推 main 可以吗"，用户说可以就直接推
 - 不要顺手重构、改 UI、改数据库、改环境变量或改部署配置
 
 ### 纯文档改动（Claude.md 等）
 
 可以直接推 main，不需要走 PR 流程。
+
+### 新仓库接入 Netlify 步骤
+
+1. Netlify → Add new project → Import an existing project → 选 GitHub → 选仓库
+2. 部署设置：
+   - 静态项目：Build command 留空，Publish directory 填 `.`
+   - 其他项目：先确认正确的 build / publish 再填
+3. Deploy → 等第一次部署成功
+4. 开启 Deploy Previews：
+   Project configuration → Build & deploy → Continuous deployment → Branches and deploy contexts → Configure → 打开 **Any pull request against your production branch / branch deploy branches**
