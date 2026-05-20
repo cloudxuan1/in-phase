@@ -208,6 +208,16 @@
     .columns.hide-user .col.user-col,
     .columns.hide-claude .divider,
     .columns.hide-user .divider { display: none; }
+    /* defensive: keep content from re-expanding column once ratios are set */
+    .comment-input input { min-width: 0; }
+    .note { overflow-wrap: anywhere; }
+    .song-title { overflow-wrap: anywhere; }
+    /* explicit column ratios driven by which side is expanded */
+    .col { min-width: 0; }
+    .columns.left-expanded  .col.claude-col { flex-grow: 65; }
+    .columns.left-expanded  .col.user-col   { flex-grow: 35; }
+    .columns.right-expanded .col.claude-col { flex-grow: 35; }
+    .columns.right-expanded .col.user-col   { flex-grow: 65; }
   }
   .empty-state { text-align: center; padding: 60px 20px; color: #c4b4a0; }
   .empty-state .icon { font-size: 28px; margin-bottom: 12px; }
@@ -1775,6 +1785,7 @@ function App() {
     );
   };
   const colClass = ms === "claude" ? "hide-user" : ms === "user" ? "hide-claude" : "";
+  const expClass = !exp ? "" : String(exp).startsWith("c-") ? "left-expanded" : "right-expanded";
   const activePairId = exp ? Number(String(exp).split("-")[1]) : null;
   return /*#__PURE__*/React.createElement("div", {
     className: "wrap"
@@ -1864,7 +1875,7 @@ function App() {
       lineHeight: 1.8
     }
   }, "\u9084\u6C92\u6709\u6B4C\u66F2", /*#__PURE__*/React.createElement("br", null), "Go to Exchange to start!")), /*#__PURE__*/React.createElement("div", {
-    className: `columns ${colClass}`
+    className: `columns ${colClass} ${expClass}`
   }, /*#__PURE__*/React.createElement("div", {
     className: "col claude-col"
   }, /*#__PURE__*/React.createElement("div", {

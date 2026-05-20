@@ -148,38 +148,35 @@ custom groups：scene / texture / memory / other（展示层分类，不写进�
 ## 不要做的事
 
 - 不要加 position: sticky 多层吸顶（已验证 iPhone Safari 会错位）
-- 不要用全局 min-width:0 / overflow 收口（会破坏展开卡片放大效果）
 - 不要改 Settings emoji 网格（5x4，前 19 固定 + 第 20 格是 +）
 - 不要修改 icon-preview 的 65px 宽度
 
-## 已知问题（待处理）
+## 已解决问题（写在这里防止再绕弯路）
 
-### iPhone Safari 展开卡片触发整页缩放（优先级高，未解决）
+### iPhone Safari 展开卡片触发整页缩放（已解决，PR#13）
 
-**症状**：手机上点开卡片展开详情，顶部 header/nav 会缩小变形，整页被 Safari 自动缩放。
+**产品意图（最重要，先看这个）**：
+- 点开一张卡片，那一侧的列变大，另一侧的列变小，总宽不变
+- 顶部列名（"Claude" / "xuan"）跟着同一比例对齐
+- 不要让内容自动撑宽列，列宽由状态显式控制
 
-**根因（已确认）**：`.columns` 是 `display:flex`，`.col` 有 `flex:1` 但没有 `min-width:0`。展开卡片时某个子元素的 min-content-width 超出列宽，撑宽 `.col`，两列合计 > 视口，Safari 缩页。
+**正确方案（已上线）**：
+- 列宽由展开状态显式控制，不让内容驱动
+- 默认 50/50；左展开 65/35；右展开 35/65
+- React 派生 className（`left-expanded` / `right-expanded`）加在 `.columns` 上
+- `.col { min-width: 0 }` 配合 `flex-grow` 比例 —— 关键语义反转：之前没有显式比例时 min-width:0 会塌列；有了显式比例后 min-width:0 反过来是保险，阻止内容撑宽已定好的列
+- 一并加 `.song-title` / `.note` / `.comment-input input` 的 overflow-wrap / min-width 防御
 
-**已试过且失败的方案（不要再试）**：
-- PR#5：全局 `.col { min-width:0 }` → 两列失衡，展开交互坏掉（被 revert）
-- PR#6：sticky header / layout shell → 只遮症状，不解根因（被 revert）
-- PR#7 (V4)：expanded detail 改 `position:absolute; top:100%` → detail 覆盖下方卡片，原地展开感消失（被 revert）
-- PR#10 (V5)：`.col { min-width:0 }` + `.theme-title` flex 规则 → 列失衡 + 留言 input 坏掉（被 revert）
-- PR#12 (V6)：只加 `.theme-title { min-width:0 }`、`.comment-input input { min-width:0 }`、`.card.expanded .input { box-sizing:border-box }` → Safari 仍缩页
-- V6b：在 V6 基础上加 `.col { overflow-x:hidden }` → 卡片展开后视觉上不再变大（overflow 把内容裁掉了）
+**不要再走的弯路（前后试过 3 个会话，都走偏了）**：
+- ❌ 不要逐个修 input / note / theme-title 的 min-width / word-break（治不完，根因不在这）
+- ❌ 不要 `contain: inline-size`（会让展开卡和折叠卡等宽，丢失放大效果）
+- ❌ 不要 `position: absolute / sticky`（破坏原地展开感）
+- ❌ 不要全局 `overflow: hidden`（裁掉内容）
+- ❌ 不要试图通过让 `.col` shrink 来解决（任何不带显式比例的 `.col { min-width:0 }` 都会塌列）
 
-**当前 main 状态**：PR#4 干净基线（Filter UI 完成），以上所有改动已全部 revert。
+**根因**：之前 `.col { flex: 1 }` + 无 `min-width: 0`，展开卡 min-content-width ≈ 319px 通过 flex auto-minimum-size 传递到列，撑成 335px，两列合计 > 视口 → Safari shrink-to-fit 触发，`window.innerWidth` 从 402 扩到 498。
 
-**下一步必须先做诊断，再改代码**：
-1. 用 Mac 连 iPhone，Safari 开发者工具 → Elements 面板，展开卡片时找到实际比视口宽的元素
-2. 或者加一段临时调试 JS，展开时把所有 `offsetWidth > window.innerWidth` 的元素打印到页面上
-3. 确认溢出元素后，只针对那个元素加约束，不要碰 `.col` 本身
-
-**已确认不能动的方向**：
-- 不加 `position:sticky` 多层吸顶
-- 不加全局 `overflow:hidden` / `overflow:clip`
-- 不让 expanded card 脱离 normal flow（破坏原地展开感）
-- 不加 `.col { min-width:0 }` 或 `.col { overflow-x:hidden }`（反复验证会破坏列宽平衡）
+**关键决策记录**：症状是"页面缩小"，但真正问题是"列宽不该由内容控制，应该由状态控制"。先听产品意图，再决定技术方向；如果产品要的是显式比例，就不要去修 overflow。
 
 ### 旧标签数据迁移问题
 旧数据格式：`{ "weather": "晴 Sunny", "mood": "懷念 Nostalgic" }`（带英文）
