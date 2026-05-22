@@ -169,7 +169,7 @@
 
   /* Modals */
   .overlay { position: fixed; inset: 0; background: rgba(90,83,76,.3); z-index: 200; display: flex; align-items: center; justify-content: center; }
-  .modal { background: var(--card); border: 2px solid var(--border); padding: 24px; box-shadow: 6px 6px 0 var(--shadow); max-width: 340px; width: 90%; }
+  .modal { background: var(--card); border: 2px solid var(--border); padding: 24px; box-shadow: 6px 6px 0 var(--shadow); max-width: 340px; width: 90%; max-height: 90vh; overflow-y: auto; overscroll-behavior: contain; }
   .modal-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 20px; letter-spacing: 2px; }
   .setting-row { margin-bottom: 16px; padding: 12px; background: var(--bg); border: 1px solid var(--light); }
   .emoji-grid { background: var(--card); border: 2px solid var(--border); padding: 10px; box-shadow: 4px 4px 0 var(--shadow); margin-top: 10px; display: grid; grid-template-columns: repeat(5,32px); gap: 4px; width: max-content; max-width: 100%; }
@@ -259,6 +259,9 @@
   .tgm-danger-btn:hover { background: #fce4d6; }
   .tgm-add-group-btn { width: 100%; padding: 8px; border: 1px dashed var(--shadow); background: transparent; color: var(--muted); cursor: pointer; font-size: 11px; font-family: inherit; text-align: center; margin-top: 4px; }
   .tgm-add-group-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tgm-back-btn { background: none; border: none; cursor: pointer; font-size: 11px; color: var(--accent); font-family: inherit; padding: 0; flex-shrink: 0; }
+  .tgm-edit-panel-title { font-size: 11px; color: var(--text); font-weight: 600; flex: 1; text-align: center; }
+  .tgm-edit-panel { padding: 10px 0 4px; }
 </style>
 </head>
 <body>
@@ -1340,6 +1343,11 @@ function SettingsModal({
   const [editingKey, setEditingKey] = useState(null);
   const [tagInputs, setTagInputs] = useState({});
   const [hexInputs, setHexInputs] = useState({});
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
   const applyCustomIcon = side => {
     const value = String(customDraft[side] || "").trim();
     const count = iconSymbolCount(value);
@@ -1359,43 +1367,36 @@ function SettingsModal({
     setCustomSide(null);
     setCustomError("");
   };
+  const editingGroup = presetGroups.find(g => g.key === editingKey) || null;
   const tagMgmtSection = React.createElement("div", { className: "tgm-section" },
-    React.createElement("div", { className: "tgm-section-header", onClick: () => setTgmOpen(o => !o) },
-      React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
-        React.createElement("span", { className: "tgm-section-title" }, "TAGS 标签组管理"),
-        React.createElement("button", {
-          className: "tgm-reset-btn",
-          onClick: e => { e.stopPropagation(); setPresetGroups(DEFAULT_PRESET_GROUPS); setEditingKey(null); }
-        }, "重置默认")
-      ),
-      React.createElement("span", { className: "tgm-section-toggle" }, tgmOpen ? "▴" : "▾")
-    ),
-    tgmOpen && React.createElement("div", null,
-      presetGroups.map(group => React.createElement(React.Fragment, { key: group.key },
-        React.createElement("div", {
-          className: "tgm-group-row",
-          onClick: () => {
-            if (editingKey === group.key) {
-              setEditingKey(null);
-            } else {
-              setEditingKey(group.key);
-              setHexInputs(p => ({ ...p, [group.key]: group.color }));
-            }
-          }
-        },
-          React.createElement("div", { className: "tgm-color-dot", style: { background: group.color } }),
-          React.createElement("span", { className: "tgm-group-label" }, group.label),
-          React.createElement("span", { className: "tgm-group-count" }, group.tags.length + " 个"),
-          React.createElement("span", { className: "tgm-edit-arrow" }, editingKey === group.key ? "▴" : "▸")
+    editingGroup
+      ? React.createElement("div", { className: "tgm-section-header", onClick: () => setEditingKey(null) },
+          React.createElement("button", {
+            className: "tgm-back-btn",
+            onClick: e => { e.stopPropagation(); setEditingKey(null); }
+          }, "← 返回"),
+          React.createElement("span", { className: "tgm-edit-panel-title" }, editingGroup.label),
+          React.createElement("span", { style: { width: 40 } })
+        )
+      : React.createElement("div", { className: "tgm-section-header", onClick: () => setTgmOpen(o => !o) },
+          React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+            React.createElement("span", { className: "tgm-section-title" }, "TAGS 标签组管理"),
+            React.createElement("button", {
+              className: "tgm-reset-btn",
+              onClick: e => { e.stopPropagation(); setPresetGroups(DEFAULT_PRESET_GROUPS); setEditingKey(null); }
+            }, "重置默认")
+          ),
+          React.createElement("span", { className: "tgm-section-toggle" }, tgmOpen ? "▴" : "▾")
         ),
-        editingKey === group.key && React.createElement("div", { className: "tgm-editor" },
+    editingGroup
+      ? React.createElement("div", { className: "tgm-edit-panel" },
           React.createElement("div", { className: "tgm-editor-row" },
             React.createElement("span", { className: "tgm-editor-label" }, "名称"),
             React.createElement("input", {
               className: "input",
               style: { marginBottom: 0, flex: 1 },
-              value: group.label,
-              onChange: e => setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, label: e.target.value } : g))
+              value: editingGroup.label,
+              onChange: e => setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, label: e.target.value } : g))
             })
           ),
           React.createElement("div", { className: "tgm-editor-row" },
@@ -1404,85 +1405,97 @@ function SettingsModal({
               React.createElement("input", {
                 type: "color",
                 className: "tgm-color-input",
-                value: group.color,
+                value: editingGroup.color,
                 onChange: e => {
                   const hex = e.target.value;
-                  setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, color: hex } : g));
-                  setHexInputs(p => ({ ...p, [group.key]: hex }));
+                  setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, color: hex } : g));
+                  setHexInputs(p => ({ ...p, [editingGroup.key]: hex }));
                 }
               }),
               React.createElement("input", {
                 className: "tgm-hex-input",
-                value: hexInputs[group.key] !== undefined ? hexInputs[group.key] : group.color,
+                value: hexInputs[editingGroup.key] !== undefined ? hexInputs[editingGroup.key] : editingGroup.color,
                 onChange: e => {
                   const v = e.target.value;
-                  setHexInputs(p => ({ ...p, [group.key]: v }));
+                  setHexInputs(p => ({ ...p, [editingGroup.key]: v }));
                   if (/^#[0-9a-fA-F]{6}$/.test(v)) {
-                    setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, color: v } : g));
+                    setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, color: v } : g));
                   }
                 }
               })
             )
           ),
-          React.createElement("div", { className: "tgm-tag-chips" },
-            group.tags.map((tag, i) => React.createElement("span", {
+          React.createElement("div", { className: "tgm-tag-chips", style: { marginTop: 8 } },
+            editingGroup.tags.map((tag, i) => React.createElement("span", {
               key: i,
               className: "tgm-tag-chip",
-              style: { color: group.color, borderColor: group.color }
+              style: { color: editingGroup.color, borderColor: editingGroup.color }
             },
               tag,
               React.createElement("button", {
                 className: "tgm-tag-chip-x",
-                onClick: () => setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, tags: g.tags.filter((_, ti) => ti !== i) } : g))
+                onClick: () => setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, tags: g.tags.filter((_, ti) => ti !== i) } : g))
               }, "\xD7")
             ))
           ),
-          React.createElement("div", { className: "tgm-tag-add-row" },
-            React.createElement("input", {
-              className: "input",
-              style: { marginBottom: 0, flex: 1 },
-              placeholder: "新增标签，Enter/逗号确认",
-              value: tagInputs[group.key] || "",
-              onChange: e => {
-                const v = e.target.value;
-                if (v.endsWith(",") || v.endsWith("，")) {
-                  const tag = v.slice(0, -1).trim();
-                  if (tag && !group.tags.includes(tag)) {
-                    setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, tags: [...g.tags, tag] } : g));
-                  }
-                  setTagInputs(p => ({ ...p, [group.key]: "" }));
-                } else {
-                  setTagInputs(p => ({ ...p, [group.key]: v }));
+          React.createElement("input", {
+            className: "input",
+            style: { marginTop: 6 },
+            placeholder: "新增标签，Enter / 逗号确认",
+            value: tagInputs[editingGroup.key] || "",
+            onChange: e => {
+              const v = e.target.value;
+              if (v.endsWith(",") || v.endsWith("，")) {
+                const tag = v.slice(0, -1).trim();
+                if (tag && !editingGroup.tags.includes(tag)) {
+                  setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, tags: [...g.tags, tag] } : g));
                 }
-              },
-              onKeyDown: e => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  const tag = (tagInputs[group.key] || "").trim();
-                  if (tag && !group.tags.includes(tag)) {
-                    setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, tags: [...g.tags, tag] } : g));
-                  }
-                  setTagInputs(p => ({ ...p, [group.key]: "" }));
-                }
+                setTagInputs(p => ({ ...p, [editingGroup.key]: "" }));
+              } else {
+                setTagInputs(p => ({ ...p, [editingGroup.key]: v }));
               }
-            })
-          ),
+            },
+            onKeyDown: e => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const tag = (tagInputs[editingGroup.key] || "").trim();
+                if (tag && !editingGroup.tags.includes(tag)) {
+                  setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, tags: [...g.tags, tag] } : g));
+                }
+                setTagInputs(p => ({ ...p, [editingGroup.key]: "" }));
+              }
+            }
+          }),
           React.createElement("button", {
             className: "tgm-danger-btn",
-            onClick: () => { setPresetGroups(pg => pg.filter(g => g.key !== group.key)); setEditingKey(null); }
+            style: { width: "100%", marginTop: 12 },
+            onClick: () => { setPresetGroups(pg => pg.filter(g => g.key !== editingGroup.key)); setEditingKey(null); }
           }, "删除此标签组")
         )
-      )),
-      React.createElement("button", {
-        className: "tgm-add-group-btn",
-        onClick: () => {
-          const key = "group_" + Date.now();
-          setPresetGroups(pg => [...pg, { key, label: "新标签组", color: "#a08cc4", tags: [] }]);
-          setEditingKey(key);
-          setHexInputs(p => ({ ...p, [key]: "#a08cc4" }));
-        }
-      }, "+ 新增标签组")
-    )
+      : tgmOpen && React.createElement("div", null,
+          presetGroups.map(group => React.createElement("div", {
+            key: group.key,
+            className: "tgm-group-row",
+            onClick: () => {
+              setEditingKey(group.key);
+              setHexInputs(p => ({ ...p, [group.key]: group.color }));
+            }
+          },
+            React.createElement("div", { className: "tgm-color-dot", style: { background: group.color } }),
+            React.createElement("span", { className: "tgm-group-label" }, group.label),
+            React.createElement("span", { className: "tgm-group-count" }, group.tags.length + " 个"),
+            React.createElement("span", { className: "tgm-edit-arrow" }, "▸")
+          )),
+          React.createElement("button", {
+            className: "tgm-add-group-btn",
+            onClick: () => {
+              const key = "group_" + Date.now();
+              setPresetGroups(pg => [...pg, { key, label: "新标签组", color: "#a08cc4", tags: [] }]);
+              setEditingKey(key);
+              setHexInputs(p => ({ ...p, [key]: "#a08cc4" }));
+            }
+          }, "+ 新增标签组")
+        )
   );
   return /*#__PURE__*/React.createElement("div", {
     className: "overlay",
