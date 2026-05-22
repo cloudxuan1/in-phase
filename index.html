@@ -1638,7 +1638,7 @@ function SettingsModal({
       React.createElement("div", { style: { fontSize: 10, color: "var(--muted)", marginBottom: 8 } }, "TAGS 標籤組"),
       React.createElement("div", { style: { display: "flex", gap: 6 } },
         React.createElement("button", { className: "btn small", style: { padding: "6px 12px", fontSize: 10 }, onClick: () => setPage("tags") }, "管理"),
-        React.createElement("button", { className: "btn small", style: { padding: "6px 12px", fontSize: 10 }, onClick: () => setShowResetConfirm(true) }, "重置")
+        React.createElement("button", { className: `btn small${showResetConfirm ? " active" : ""}`, style: { padding: "6px 12px", fontSize: 10 }, onClick: () => setShowResetConfirm(true) }, "重置")
       )
     )
   ), page === "tags" && tagsPageContent, page !== "tags" && /*#__PURE__*/React.createElement("button", {
@@ -1663,8 +1663,14 @@ function SettingsModal({
       width: "100%"
     },
     onClick: () => {
-      onSave();
-      onClose();
+      if (page === "tags" && editingGroup) {
+        setEditingKey(null);
+      } else if (page === "tags") {
+        setPage("settings");
+      } else {
+        onSave();
+        onClose();
+      }
     }
   }, "完成 Done")), showResetConfirm && React.createElement("div", {
     style: { position: "fixed", inset: 0, background: "rgba(90,83,76,.45)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" },
