@@ -259,6 +259,8 @@
   .tgm-danger-btn:hover { background: #fce4d6; }
   .tgm-add-group-btn { width: 100%; padding: 8px; border: 1px dashed var(--shadow); background: transparent; color: var(--muted); cursor: pointer; font-size: 11px; font-family: inherit; text-align: center; margin-top: 4px; }
   .tgm-add-group-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tgm-swipe-wrapper { position: relative; overflow: hidden; margin-bottom: 4px; }
+  .tgm-swipe-delete { position: absolute; right: 0; top: 0; bottom: 0; width: 68px; background: var(--accent); color: #fff; border: none; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; }
   .tgm-back-btn { background: none; border: none; cursor: pointer; font-size: 11px; color: var(--accent); font-family: inherit; padding: 0; flex-shrink: 0; }
   .tgm-edit-panel-title { font-size: 11px; color: var(--text); font-weight: 600; flex: 1; text-align: center; }
   .tgm-edit-panel { padding: 10px 0 4px; }
@@ -1343,6 +1345,9 @@ function SettingsModal({
   const [editingKey, setEditingKey] = useState(null);
   const [tagInputs, setTagInputs] = useState({});
   const [hexInputs, setHexInputs] = useState({});
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [swipeKey, setSwipeKey] = useState(null);
+  const touchRef = useRef({ x: 0, key: null });
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -1455,16 +1460,41 @@ function SettingsModal({
     : React.createElement("div", null,
         presetGroups.map(group => React.createElement("div", {
           key: group.key,
-          className: "tgm-group-row",
-          onClick: () => {
-            setEditingKey(group.key);
-            setHexInputs(p => ({ ...p, [group.key]: group.color }));
-          }
+          className: "tgm-swipe-wrapper"
         },
-          React.createElement("div", { className: "tgm-color-dot", style: { background: group.color } }),
-          React.createElement("span", { className: "tgm-group-label" }, group.label),
-          React.createElement("span", { className: "tgm-group-count" }, group.tags.length + " 个"),
-          React.createElement("span", { className: "tgm-edit-arrow" }, "▸")
+          React.createElement("button", {
+            className: "tgm-swipe-delete",
+            onClick: e => {
+              e.stopPropagation();
+              setPresetGroups(pg => pg.filter(g => g.key !== group.key));
+              setSwipeKey(null);
+            }
+          }, "删除"),
+          React.createElement("div", {
+            className: "tgm-group-row",
+            style: {
+              transform: swipeKey === group.key ? "translateX(-68px)" : "translateX(0)",
+              transition: "transform 0.2s ease",
+              marginBottom: 0
+            },
+            onClick: () => {
+              if (swipeKey === group.key) { setSwipeKey(null); return; }
+              setEditingKey(group.key);
+              setHexInputs(p => ({ ...p, [group.key]: group.color }));
+            },
+            onTouchStart: e => { touchRef.current = { x: e.touches[0].clientX, key: group.key }; },
+            onTouchMove: e => {
+              if (touchRef.current.key !== group.key) return;
+              const dx = e.touches[0].clientX - touchRef.current.x;
+              if (dx < -40) setSwipeKey(group.key);
+              else if (dx > 20) setSwipeKey(null);
+            }
+          },
+            React.createElement("div", { className: "tgm-color-dot", style: { background: group.color } }),
+            React.createElement("span", { className: "tgm-group-label" }, group.label),
+            React.createElement("span", { className: "tgm-group-count" }, group.tags.length + " 个"),
+            React.createElement("span", { className: "tgm-edit-arrow" }, "▸")
+          )
         )),
         React.createElement("button", {
           className: "tgm-add-group-btn",
@@ -1608,7 +1638,7 @@ function SettingsModal({
       React.createElement("div", { style: { fontSize: 10, color: "var(--muted)", marginBottom: 8 } }, "TAGS 標籤組"),
       React.createElement("div", { style: { display: "flex", gap: 6 } },
         React.createElement("button", { className: "btn small", style: { padding: "6px 12px", fontSize: 10 }, onClick: () => setPage("tags") }, "管理"),
-        React.createElement("button", { className: "btn small", style: { padding: "6px 12px", fontSize: 10 }, onClick: () => setPresetGroups(DEFAULT_PRESET_GROUPS) }, "重置")
+        React.createElement("button", { className: "btn small", style: { padding: "6px 12px", fontSize: 10 }, onClick: () => setShowResetConfirm(true) }, "重置")
       )
     )
   ), page === "tags" && tagsPageContent, page !== "tags" && /*#__PURE__*/React.createElement("button", {
@@ -1636,7 +1666,28 @@ function SettingsModal({
       onSave();
       onClose();
     }
-  }, "完成 Done")));
+  }, "完成 Done")), showResetConfirm && React.createElement("div", {
+    style: { position: "fixed", inset: 0, background: "rgba(90,83,76,.45)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" },
+    onClick: () => setShowResetConfirm(false)
+  }, React.createElement("div", {
+    style: { background: "var(--card)", border: "2px solid var(--border)", padding: 24, maxWidth: 280, width: "90%", boxShadow: "6px 6px 0 var(--shadow)" },
+    onClick: e => e.stopPropagation()
+  },
+    React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 10, letterSpacing: 1 } }, "恢復標籤組默認"),
+    React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", marginBottom: 20, lineHeight: 1.7 } }, "所有自訂標籤組將被清除，恢復為預設的 4 個分組。此操作需點擊 Done 後才會保存。"),
+    React.createElement("div", { style: { display: "flex", gap: 8 } },
+      React.createElement("button", {
+        className: "btn small",
+        style: { flex: 1, padding: "8px 0", fontSize: 11 },
+        onClick: () => setShowResetConfirm(false)
+      }, "取消"),
+      React.createElement("button", {
+        className: "submit-btn",
+        style: { flex: 1, fontSize: 11, padding: "8px 0" },
+        onClick: () => { setPresetGroups(DEFAULT_PRESET_GROUPS); setEditingKey(null); setShowResetConfirm(false); }
+      }, "確認恢復")
+    )
+  )));
 }
 
 function App() {
