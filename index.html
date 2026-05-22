@@ -437,13 +437,13 @@ async function api(path, method = "GET", body = null) {
 // ─── Constants ──────────────────────────────────────────────────────────
 const DEFAULT_PRESET_GROUPS = [
   { key: "weather", label: "天气 Weather", color: "#6b9bd2",
-    tags: ["晴", "阴", "雨", "雪", "雾", "风", "雷暴"] },
+    tags: ["晴 Sunny", "阴 Cloudy", "雨 Rainy", "雪 Snowy", "雾 Foggy", "风 Windy", "雷暴 Storm"] },
   { key: "place",   label: "场所 Place",   color: "#7bb86f",
-    tags: ["床", "浴室", "书桌", "咖啡厅", "散步", "开车", "地铁", "阳台", "机场", "公园"] },
+    tags: ["床 Bed", "浴室 Bath", "书桌 Desk", "咖啡厅 Café", "散步 Walk", "开车 Drive", "地铁 Metro", "阳台 Balcony", "机场 Airport", "公园 Park"] },
   { key: "time",    label: "时间 Time",    color: "#d4a03c",
-    tags: ["清晨", "上午", "午后", "傍晚", "深夜", "失眠"] },
+    tags: ["清晨 Dawn", "上午 Morning", "午后 Afternoon", "傍晚 Dusk", "深夜 Late Night", "失眠 Sleepless"] },
   { key: "mood",    label: "心情 Mood",    color: "#c76b8a",
-    tags: ["平静", "开心", "紧张", "伤心", "怀念", "失落"] }
+    tags: ["平静 Calm", "开心 Happy", "紧张 Nervous", "伤心 Sad", "怀念 Nostalgic", "失落 Lost"] }
 ];
 let TAGS = {}, TAG_LABELS = {}, TAG_COLORS = { custom: "#a08cc4" };
 function rebuildTagLookups(groups) {
@@ -464,33 +464,25 @@ function isValidPresetGroups(pg) {
                   Array.isArray(g.tags) && g.tags.every(t => typeof t === 'string'));
 }
 const OLD_TAG_MAP = {
-  "晴 Sunny":"晴",    "陰 Cloudy":"阴",    "雨 Rainy":"雨",
-  "雪 Snowy":"雪",    "霧 Foggy":"雾",     "風 Windy":"风",
-  "雷暴 Storm":"雷暴",
-  "床 Bed":"床",      "浴室 Bath":"浴室",  "書桌 Desk":"书桌",
-  "咖啡廳 Café":"咖啡厅", "散步 Walk":"散步",  "開車 Drive":"开车",
-  "地鐵 Metro":"地铁", "陽台 Balcony":"阳台","機場 Airport":"机场",
-  "公園 Park":"公园",
-  "清晨 Dawn":"清晨",  "上午 Morning":"上午","午後 Afternoon":"午后",
-  "傍晚 Dusk":"傍晚",  "深夜 Late Night":"深夜","失眠 Sleepless":"失眠",
-  "平靜 Calm":"平静",  "開心 Happy":"开心",  "緊張 Nervous":"紧张",
-  "傷心 Sad":"伤心",   "懷念 Nostalgic":"怀念","失落 Lost":"失落"
+  "陰 Cloudy":"阴 Cloudy",   "霧 Foggy":"雾 Foggy",       "風 Windy":"风 Windy",
+  "書桌 Desk":"书桌 Desk",   "咖啡廳 Café":"咖啡厅 Café", "開車 Drive":"开车 Drive",
+  "地鐵 Metro":"地铁 Metro", "陽台 Balcony":"阳台 Balcony","機場 Airport":"机场 Airport",
+  "公園 Park":"公园 Park",   "午後 Afternoon":"午后 Afternoon",
+  "平靜 Calm":"平静 Calm",   "開心 Happy":"开心 Happy",    "緊張 Nervous":"紧张 Nervous",
+  "傷心 Sad":"伤心 Sad",     "懷念 Nostalgic":"怀念 Nostalgic"
 };
 const TRAD_TO_SIMP = {
-  "陰":"阴","霧":"雾","風":"风","書桌":"书桌","咖啡廳":"咖啡厅",
-  "開車":"开车","地鐵":"地铁","陽台":"阳台","機場":"机场","公園":"公园",
-  "午後":"午后","平靜":"平静","開心":"开心","緊張":"紧张","傷心":"伤心","懷念":"怀念"
+  "陰":"阴 Cloudy","霧":"雾 Foggy","風":"风 Windy",
+  "書桌":"书桌 Desk","咖啡廳":"咖啡厅 Café","開車":"开车 Drive",
+  "地鐵":"地铁 Metro","陽台":"阳台 Balcony","機場":"机场 Airport","公園":"公园 Park",
+  "午後":"午后 Afternoon","平靜":"平静 Calm","開心":"开心 Happy",
+  "緊張":"紧张 Nervous","傷心":"伤心 Sad","懷念":"怀念 Nostalgic"
 };
 function normalizeTag(tag) {
   const clean = String(tag || "").trim();
   if (!clean) return "";
   if (OLD_TAG_MAP[clean]) return OLD_TAG_MAP[clean];
   if (TRAD_TO_SIMP[clean]) return TRAD_TO_SIMP[clean];
-  const m = clean.match(/^(.+?)\s+[A-Za-z][A-Za-z ]*$/);
-  if (m && /[^\x00-\x7F]/.test(m[1])) {
-    const stripped = m[1].trim();
-    return TRAD_TO_SIMP[stripped] || stripped;
-  }
   return clean;
 }
 function getSongTags(song) {
@@ -507,7 +499,7 @@ function getTagCategory(tag) {
   }
   return 'custom';
 }
-const DEFAULT_QUICK_TAGS = ["深夜", "晴", "午后", "清晨", "开心", "风", "傍晚", "平静"];
+const DEFAULT_QUICK_TAGS = ["深夜 Late Night", "晴 Sunny", "午后 Afternoon", "清晨 Dawn", "开心 Happy", "风 Windy", "傍晚 Dusk", "平静 Calm"];
 function computeQuickTags(pairs, limit = 8) {
   const freq = {};
   (pairs || []).forEach(p => {
