@@ -458,8 +458,10 @@ function rebuildTagLookups(groups) {
 rebuildTagLookups(DEFAULT_PRESET_GROUPS);
 function isValidPresetGroups(pg) {
   return Array.isArray(pg) && pg.length > 0 &&
-    pg.every(g => g && typeof g.key === 'string' && typeof g.label === 'string' &&
-                  typeof g.color === 'string' && Array.isArray(g.tags));
+    pg.every(g => g && typeof g.key === 'string' && g.key &&
+                  typeof g.label === 'string' &&
+                  /^#[0-9a-fA-F]{6}$/.test(g.color) &&
+                  Array.isArray(g.tags) && g.tags.every(t => typeof t === 'string'));
 }
 const OLD_TAG_MAP = {
   "晴 Sunny":"晴",    "陰 Cloudy":"阴",    "雨 Rainy":"雨",
@@ -480,14 +482,16 @@ const TRAD_TO_SIMP = {
   "午後":"午后","平靜":"平静","開心":"开心","緊張":"紧张","傷心":"伤心","懷念":"怀念"
 };
 function normalizeTag(tag) {
-  if (OLD_TAG_MAP[tag]) return OLD_TAG_MAP[tag];
-  if (TRAD_TO_SIMP[tag]) return TRAD_TO_SIMP[tag];
-  const m = tag.match(/^(.+?)\s+[A-Za-z][A-Za-z ]*$/);
+  const clean = String(tag || "").trim();
+  if (!clean) return "";
+  if (OLD_TAG_MAP[clean]) return OLD_TAG_MAP[clean];
+  if (TRAD_TO_SIMP[clean]) return TRAD_TO_SIMP[clean];
+  const m = clean.match(/^(.+?)\s+[A-Za-z][A-Za-z ]*$/);
   if (m && /[^\x00-\x7F]/.test(m[1])) {
     const stripped = m[1].trim();
     return TRAD_TO_SIMP[stripped] || stripped;
   }
-  return tag;
+  return clean;
 }
 function getSongTags(song) {
   const t = song?.tags;
