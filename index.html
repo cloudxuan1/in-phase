@@ -229,6 +229,36 @@
   .tag-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
   .tag-chip { display: inline-flex; align-items: center; gap: 3px; padding: 3px 8px; font-size: 11px; border-radius: 99px; background: var(--light); color: var(--text); border: 1px solid var(--shadow); }
   .tag-chip-x { cursor: pointer; color: var(--muted); background: none; border: none; padding: 0 0 0 2px; font-size: 12px; line-height: 1; font-family: inherit; }
+  .tgm-section { margin-bottom: 16px; }
+  .tgm-section-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; cursor: pointer; border-bottom: 1px solid var(--light); user-select: none; margin-bottom: 8px; }
+  .tgm-section-title { font-size: 10px; color: var(--muted); letter-spacing: 1px; font-weight: 700; }
+  .tgm-section-toggle { font-size: 10px; color: var(--muted); }
+  .tgm-reset-btn { padding: 3px 8px; font-size: 9px; border: 1px solid var(--light); background: transparent; color: var(--muted); cursor: pointer; font-family: inherit; }
+  .tgm-reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tgm-group-row { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border: 1px solid var(--light); background: var(--bg); margin-bottom: 4px; cursor: pointer; }
+  .tgm-group-row:hover { border-color: var(--shadow); }
+  .tgm-color-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,.15); }
+  .tgm-group-label { flex: 1; font-size: 11px; color: var(--text); }
+  .tgm-group-count { font-size: 9px; color: var(--muted); }
+  .tgm-edit-arrow { font-size: 10px; color: var(--muted); flex-shrink: 0; }
+  .tgm-editor { border: 1px solid var(--accent); background: var(--cream); padding: 10px; margin-bottom: 4px; }
+  .tgm-editor-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .tgm-editor-label { font-size: 9px; color: var(--muted); white-space: nowrap; flex-shrink: 0; min-width: 28px; }
+  .tgm-color-input-wrap { display: flex; align-items: center; gap: 6px; }
+  .tgm-color-input { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border: 2px solid var(--border); border-radius: 2px; padding: 0; cursor: pointer; vertical-align: middle; flex-shrink: 0; }
+  .tgm-color-input::-webkit-color-swatch-wrapper { padding: 0; }
+  .tgm-color-input::-webkit-color-swatch { border: none; }
+  .tgm-color-input::-moz-color-swatch { border: none; }
+  .tgm-hex-input { width: 76px; padding: 4px 6px; border: 1px solid var(--border); background: var(--card); font-family: inherit; font-size: 10px; color: var(--text); outline: none; text-transform: uppercase; }
+  .tgm-hex-input:focus { border-color: var(--accent); }
+  .tgm-tag-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+  .tgm-tag-chip { display: inline-flex; align-items: center; gap: 2px; padding: 2px 7px; font-size: 10px; border-radius: 99px; border: 1px solid currentColor; }
+  .tgm-tag-chip-x { cursor: pointer; background: none; border: none; padding: 0; font-size: 11px; line-height: 1; font-family: inherit; color: inherit; }
+  .tgm-tag-add-row { display: flex; gap: 4px; margin-bottom: 8px; }
+  .tgm-danger-btn { padding: 5px 10px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; font-size: 10px; font-family: inherit; }
+  .tgm-danger-btn:hover { background: #fce4d6; }
+  .tgm-add-group-btn { width: 100%; padding: 8px; border: 1px dashed var(--shadow); background: transparent; color: var(--muted); cursor: pointer; font-size: 11px; font-family: inherit; text-align: center; margin-top: 4px; }
+  .tgm-add-group-btn:hover { border-color: var(--accent); color: var(--accent); }
 </style>
 </head>
 <body>
@@ -405,30 +435,67 @@ async function api(path, method = "GET", body = null) {
 }
 
 // ─── Constants ──────────────────────────────────────────────────────────
-const TAGS = {
-  weather: ["晴 Sunny", "陰 Cloudy", "雨 Rainy", "雪 Snowy", "霧 Foggy", "風 Windy", "雷暴 Storm"],
-  place: ["床 Bed", "浴室 Bath", "書桌 Desk", "咖啡廳 Café", "散步 Walk", "開車 Drive", "地鐵 Metro", "陽台 Balcony", "機場 Airport", "公園 Park"],
-  time: ["清晨 Dawn", "上午 Morning", "午後 Afternoon", "傍晚 Dusk", "深夜 Late Night", "失眠 Sleepless"],
-  mood: ["平靜 Calm", "開心 Happy", "緊張 Nervous", "傷心 Sad", "懷念 Nostalgic", "失落 Lost"]
+const DEFAULT_PRESET_GROUPS = [
+  { key: "weather", label: "天气 Weather", color: "#6b9bd2",
+    tags: ["晴", "阴", "雨", "雪", "雾", "风", "雷暴"] },
+  { key: "place",   label: "场所 Place",   color: "#7bb86f",
+    tags: ["床", "浴室", "书桌", "咖啡厅", "散步", "开车", "地铁", "阳台", "机场", "公园"] },
+  { key: "time",    label: "时间 Time",    color: "#d4a03c",
+    tags: ["清晨", "上午", "午后", "傍晚", "深夜", "失眠"] },
+  { key: "mood",    label: "心情 Mood",    color: "#c76b8a",
+    tags: ["平静", "开心", "紧张", "伤心", "怀念", "失落"] }
+];
+let TAGS = {}, TAG_LABELS = {}, TAG_COLORS = { custom: "#a08cc4" };
+function rebuildTagLookups(groups) {
+  TAGS = {}; TAG_LABELS = {}; TAG_COLORS = { custom: "#a08cc4" };
+  const src = (groups && groups.length > 0) ? groups : DEFAULT_PRESET_GROUPS;
+  src.forEach(g => {
+    TAGS[g.key] = g.tags;
+    TAG_LABELS[g.key] = g.label;
+    TAG_COLORS[g.key] = g.color;
+  });
+}
+rebuildTagLookups(DEFAULT_PRESET_GROUPS);
+function isValidPresetGroups(pg) {
+  return Array.isArray(pg) && pg.length > 0 &&
+    pg.every(g => g && typeof g.key === 'string' && typeof g.label === 'string' &&
+                  typeof g.color === 'string' && Array.isArray(g.tags));
+}
+const OLD_TAG_MAP = {
+  "晴 Sunny":"晴",    "陰 Cloudy":"阴",    "雨 Rainy":"雨",
+  "雪 Snowy":"雪",    "霧 Foggy":"雾",     "風 Windy":"风",
+  "雷暴 Storm":"雷暴",
+  "床 Bed":"床",      "浴室 Bath":"浴室",  "書桌 Desk":"书桌",
+  "咖啡廳 Café":"咖啡厅", "散步 Walk":"散步",  "開車 Drive":"开车",
+  "地鐵 Metro":"地铁", "陽台 Balcony":"阳台","機場 Airport":"机场",
+  "公園 Park":"公园",
+  "清晨 Dawn":"清晨",  "上午 Morning":"上午","午後 Afternoon":"午后",
+  "傍晚 Dusk":"傍晚",  "深夜 Late Night":"深夜","失眠 Sleepless":"失眠",
+  "平靜 Calm":"平静",  "開心 Happy":"开心",  "緊張 Nervous":"紧张",
+  "傷心 Sad":"伤心",   "懷念 Nostalgic":"怀念","失落 Lost":"失落"
 };
-const TAG_LABELS = {
-  weather: "天氣 Weather",
-  place: "場所 Place",
-  time: "時間 Time",
-  mood: "心情 Mood"
+const TRAD_TO_SIMP = {
+  "陰":"阴","霧":"雾","風":"风","書桌":"书桌","咖啡廳":"咖啡厅",
+  "開車":"开车","地鐵":"地铁","陽台":"阳台","機場":"机场","公園":"公园",
+  "午後":"午后","平靜":"平静","開心":"开心","緊張":"紧张","傷心":"伤心","懷念":"怀念"
 };
-const TAG_COLORS = {
-  weather: "var(--weather)",
-  place: "var(--place)",
-  time: "var(--time)",
-  mood: "var(--mood)",
-  custom: "var(--custom)"
-};
+function normalizeTag(tag) {
+  if (OLD_TAG_MAP[tag]) return OLD_TAG_MAP[tag];
+  if (TRAD_TO_SIMP[tag]) return TRAD_TO_SIMP[tag];
+  const m = tag.match(/^(.+?)\s+[A-Za-z][A-Za-z ]*$/);
+  if (m && /[^\x00-\x7F]/.test(m[1])) {
+    const stripped = m[1].trim();
+    return TRAD_TO_SIMP[stripped] || stripped;
+  }
+  return tag;
+}
 function getSongTags(song) {
   const t = song?.tags;
   if (!t) return [];
-  if (Array.isArray(t.list)) return t.list.filter(v => typeof v === 'string' && v.trim());
-  return Object.entries(t).filter(([, v]) => v && typeof v === 'string').map(([, v]) => v);
+  const raw = Array.isArray(t.list)
+    ? t.list.filter(v => typeof v === 'string' && v.trim())
+    : Object.entries(t).filter(([, v]) => v && typeof v === 'string').map(([, v]) => v);
+  return raw.map(normalizeTag).filter(Boolean);
 }
 function getTagCategory(tag) {
   for (const [cat, tags] of Object.entries(TAGS)) {
@@ -436,10 +503,7 @@ function getTagCategory(tag) {
   }
   return 'custom';
 }
-const DEFAULT_QUICK_TAGS = [
-  "深夜 Late Night", "温柔 Tender", "晴 Sunny", "午後 Afternoon",
-  "清晨 Dawn", "開心 Happy", "風 Windy", "傍晚 Dusk"
-];
+const DEFAULT_QUICK_TAGS = ["深夜", "晴", "午后", "清晨", "开心", "风", "傍晚", "平静"];
 function computeQuickTags(pairs, limit = 8) {
   const freq = {};
   (pairs || []).forEach(p => {
@@ -1265,7 +1329,9 @@ function SettingsModal({
   settings: s,
   setSettings: ss,
   onSave,
-  onClose
+  onClose,
+  presetGroups,
+  setPresetGroups
 }) {
   const [po, setPo] = useState(null);
   const [customSide, setCustomSide] = useState(null);
@@ -1274,6 +1340,10 @@ function SettingsModal({
     user: s.userIcon || ""
   });
   const [customError, setCustomError] = useState("");
+  const [tgmOpen, setTgmOpen] = useState(false);
+  const [editingKey, setEditingKey] = useState(null);
+  const [tagInputs, setTagInputs] = useState({});
+  const [hexInputs, setHexInputs] = useState({});
   const applyCustomIcon = side => {
     const value = String(customDraft[side] || "").trim();
     const count = iconSymbolCount(value);
@@ -1293,6 +1363,131 @@ function SettingsModal({
     setCustomSide(null);
     setCustomError("");
   };
+  const tagMgmtSection = React.createElement("div", { className: "tgm-section" },
+    React.createElement("div", { className: "tgm-section-header", onClick: () => setTgmOpen(o => !o) },
+      React.createElement("span", { className: "tgm-section-title" }, "TAGS 标签组管理"),
+      React.createElement("div", { style: { display: "flex", gap: 6, alignItems: "center" } },
+        React.createElement("button", {
+          className: "tgm-reset-btn",
+          onClick: e => { e.stopPropagation(); setPresetGroups(DEFAULT_PRESET_GROUPS); setEditingKey(null); }
+        }, "重置默认"),
+        React.createElement("span", { className: "tgm-section-toggle" }, tgmOpen ? "▴" : "▾")
+      )
+    ),
+    tgmOpen && React.createElement("div", null,
+      presetGroups.map(group => React.createElement(React.Fragment, { key: group.key },
+        React.createElement("div", {
+          className: "tgm-group-row",
+          onClick: () => {
+            if (editingKey === group.key) {
+              setEditingKey(null);
+            } else {
+              setEditingKey(group.key);
+              setHexInputs(p => ({ ...p, [group.key]: group.color }));
+            }
+          }
+        },
+          React.createElement("div", { className: "tgm-color-dot", style: { background: group.color } }),
+          React.createElement("span", { className: "tgm-group-label" }, group.label),
+          React.createElement("span", { className: "tgm-group-count" }, group.tags.length + " 个"),
+          React.createElement("span", { className: "tgm-edit-arrow" }, editingKey === group.key ? "▴" : "▸")
+        ),
+        editingKey === group.key && React.createElement("div", { className: "tgm-editor" },
+          React.createElement("div", { className: "tgm-editor-row" },
+            React.createElement("span", { className: "tgm-editor-label" }, "名称"),
+            React.createElement("input", {
+              className: "input",
+              style: { marginBottom: 0, flex: 1 },
+              value: group.label,
+              onChange: e => setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, label: e.target.value } : g))
+            })
+          ),
+          React.createElement("div", { className: "tgm-editor-row" },
+            React.createElement("span", { className: "tgm-editor-label" }, "颜色"),
+            React.createElement("div", { className: "tgm-color-input-wrap" },
+              React.createElement("input", {
+                type: "color",
+                className: "tgm-color-input",
+                value: group.color,
+                onChange: e => {
+                  const hex = e.target.value;
+                  setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, color: hex } : g));
+                  setHexInputs(p => ({ ...p, [group.key]: hex }));
+                }
+              }),
+              React.createElement("input", {
+                className: "tgm-hex-input",
+                value: hexInputs[group.key] !== undefined ? hexInputs[group.key] : group.color,
+                onChange: e => {
+                  const v = e.target.value;
+                  setHexInputs(p => ({ ...p, [group.key]: v }));
+                  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+                    setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, color: v } : g));
+                  }
+                }
+              })
+            )
+          ),
+          React.createElement("div", { className: "tgm-tag-chips" },
+            group.tags.map((tag, i) => React.createElement("span", {
+              key: i,
+              className: "tgm-tag-chip",
+              style: { color: group.color, borderColor: group.color }
+            },
+              tag,
+              React.createElement("button", {
+                className: "tgm-tag-chip-x",
+                onClick: () => setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, tags: g.tags.filter((_, ti) => ti !== i) } : g))
+              }, "\xD7")
+            ))
+          ),
+          React.createElement("div", { className: "tgm-tag-add-row" },
+            React.createElement("input", {
+              className: "input",
+              style: { marginBottom: 0, flex: 1 },
+              placeholder: "新增标签，Enter/逗号确认",
+              value: tagInputs[group.key] || "",
+              onChange: e => {
+                const v = e.target.value;
+                if (v.endsWith(",") || v.endsWith("，")) {
+                  const tag = v.slice(0, -1).trim();
+                  if (tag && !group.tags.includes(tag)) {
+                    setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, tags: [...g.tags, tag] } : g));
+                  }
+                  setTagInputs(p => ({ ...p, [group.key]: "" }));
+                } else {
+                  setTagInputs(p => ({ ...p, [group.key]: v }));
+                }
+              },
+              onKeyDown: e => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  const tag = (tagInputs[group.key] || "").trim();
+                  if (tag && !group.tags.includes(tag)) {
+                    setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, tags: [...g.tags, tag] } : g));
+                  }
+                  setTagInputs(p => ({ ...p, [group.key]: "" }));
+                }
+              }
+            })
+          ),
+          React.createElement("button", {
+            className: "tgm-danger-btn",
+            onClick: () => { setPresetGroups(pg => pg.filter(g => g.key !== group.key)); setEditingKey(null); }
+          }, "删除此标签组")
+        )
+      )),
+      React.createElement("button", {
+        className: "tgm-add-group-btn",
+        onClick: () => {
+          const key = "group_" + Date.now();
+          setPresetGroups(pg => [...pg, { key, label: "新标签组", color: "#a08cc4", tags: [] }]);
+          setEditingKey(key);
+          setHexInputs(p => ({ ...p, [key]: "#a08cc4" }));
+        }
+      }, "+ 新增标签组")
+    )
+  );
   return /*#__PURE__*/React.createElement("div", {
     className: "overlay",
     onClick: onClose
@@ -1427,7 +1622,7 @@ function SettingsModal({
       ...p,
       headphoneType: t
     }))
-  }, l)))), /*#__PURE__*/React.createElement("button", {
+  }, l)))), tagMgmtSection, /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       localStorage.removeItem("crosstalk_api_url");
       window.location.reload();
@@ -1480,6 +1675,7 @@ function App() {
     headphoneType: "wired"
   });
   const [customTags, setCustomTags] = useState([]);
+  const [presetGroups, setPresetGroups] = useState(DEFAULT_PRESET_GROUPS);
   const [exMode, setExMode] = useState("claude");
   const [pendingIdx, setPendingIdx] = useState(0);
   const [exTheme, setExTheme] = useState("");
@@ -1514,6 +1710,13 @@ function App() {
           headphoneType: s.headphone_type || "wired"
         });
         setCustomTags(s.custom_tags || []);
+        try {
+          const pg = isValidPresetGroups(s.preset_groups) ? s.preset_groups : DEFAULT_PRESET_GROUPS;
+          setPresetGroups(pg);
+          rebuildTagLookups(pg);
+        } catch (_) {
+          rebuildTagLookups(DEFAULT_PRESET_GROUPS);
+        }
       }
       setLoading(false);
     } catch (e) {
@@ -1537,6 +1740,7 @@ function App() {
       setPendingIdx(Math.max(0, count - 1));
     }
   }, [pairs, pendingIdx]);
+  useEffect(() => { rebuildTagLookups(presetGroups); }, [presetGroups]);
   const toggleTag = t => setAt(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t]);
   const filtered = pairs.filter(p => {
     const songTags = [...getSongTags(p.claude_song), ...getSongTags(p.user_song)];
@@ -1592,9 +1796,10 @@ function App() {
       user_icon: settings.userIcon,
       user_name: settings.userName,
       headphone_type: settings.headphoneType,
-      custom_tags: customTags
+      custom_tags: customTags,
+      preset_groups: presetGroups
     });
-  }, [settings, customTags]);
+  }, [settings, customTags, presetGroups]);
   async function searchMusic() {
     if (!exSong.trim() && !exArtist.trim()) return;
     setSearching(true);
@@ -2271,7 +2476,9 @@ function App() {
     settings: settings,
     setSettings: setSettings,
     onSave: saveSettings,
-    onClose: () => setShowSet(false)
+    onClose: () => setShowSet(false),
+    presetGroups: presetGroups,
+    setPresetGroups: setPresetGroups
   }));
 }
 ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(App, null));
