@@ -20,6 +20,16 @@ in-phase 是一个双人音乐交换网站。两个人轮流出题（theme），
 
 5. **解释问题时，先用视觉效果描述**（比如"展开的卡会变得和折叠的一样宽，放大效果消失"），**再补技术原因**（比如"因为 contain: inline-size"）。这样我能先理解在说什么，再决定要不要深入。
 
+6. **用术语解释，不要怕我听不懂。** 遇到需要说明技术原因或改动方案的地方，直接用正确的术语讲（class 名、CSS 属性、函数名等）。我看不懂会发给 GPT 帮我理解，不用刻意回避术语——回避之后我反而完全不知道你在改哪里。
+
+---
+
+## 分支与 main 规则（重要）
+
+- **未经允许不得直接推 main。** 每次改动要在分支开发，等用户说"在 main 直接改"才能直接推。
+- 用户说 **"在 main 直接改"** = 当前任务可以直接推 main，授权仅限该次，不延续到下一个任务。
+- 纯文档改动（Claude.md 等）可直接推 main，无需走 PR 流程。
+
 ---
 
 ## 技术栈
@@ -52,7 +62,7 @@ in-phase 是一个双人音乐交换网站。两个人轮流出题（theme），
 三张表：
 - `crosstalk_pairs` — 歌曲配对（theme, asked_by, claude_song, user_song）
 - `crosstalk_comments` — 留言（pair_id, side, sender, text）
-- `crosstalk_settings` — 设置（icon, custom_tags 等）
+- `crosstalk_settings` — 设置（icon, custom_tags, fav_tags 等）
 
 Song JSON 格式：
 ```json
@@ -107,33 +117,94 @@ Song JSON 格式：
 
 ---
 
-## 下一步：V5
+### ✅ iOS 输入框点击自动放大（PR#17 已上线）
 
-### 1. 旧标签数据兼容 ⏳
+**产品意图**：点搜索框弹出键盘，但页面不要缩放。
+
+**正确方案**：viewport meta 加 `user-scalable=no`，一次性禁止所有缩放（点击放大 + 捏合）。
+
+**❌ 不要再走的弯路**：
+- 给 input 加 `font-size: 16px`（iOS 低于 16px 才触发放大，但改字号会影响布局，且 CSS 层叠顺序容易出错）
+- `@media (max-width: 768px) { font-size: 16px }` 媒体查询放在普通规则前面时会被后面的规则覆盖，失效
+
+**教训**：CSS 层叠是按文件中出现的顺序，后写的优先级更高。媒体查询不是"更强的规则"，它和普通规则同等竞争，放在前面就会被后面的普通规则盖掉。
+
+---
+
+### ✅ 按钮/标签高度不一致（PR#17 已上线）
+
+**现象**：DotGothic16 字体在 12px 下，不同汉字字形高度略有差异，导致同行按钮高矮不齐。
+
+**正确方案**：所有按钮类加 `line-height: 1.4`（统一行高）+ `white-space: nowrap`（防换行导致高度变化）。
+
+---
+
+### ✅ GitHub Pages Jekyll 构建失败
+
+**原因**：Pages 默认会用 Jekyll 处理文件，遇到 `_` 开头路径会出错。
+
+**方案**：在仓库根目录加一个空文件 `.nojekyll`，Pages 就直接伺服静态文件，不走 Jekyll。
+
+---
+
+### ✅ favTags 刷新后丢失（PR#15 已上线）
+
+**原因**：`saveSettings` 只在设置弹窗点"保存"时触发，收藏标签的改动没有被保存。
+
+**正确方案**：用 `useEffect` 监听 `favTags` 变化，每次变更自动 PATCH `fav_tags` 到 Supabase。用 `useRef(false)` 跳过首次渲染，避免组件挂载时立刻触发空写入。
+
+---
+
+## 已完成功能
+
+### ✅ 收藏标签（喜欢）系统（PR#15）
+- Filter 新增"喜欢"行，显示已收藏标签，点击直接筛选
+- ＋按钮打开大弹窗，按分类展示所有标签，支持搜索，点击收藏/取消
+- `fav_tags JSONB` 列加到 `crosstalk_settings`，自动持久化
+
+### ✅ 预设分类按钮化（PR#15）
+- Filter 预设行从平铺标签改为分类按钮（天气/场所/时间/心情/自定义/常用）
+- 点击任意分类按钮弹出小浮窗显示该类标签
+
+### ✅ Exchange 导航重设计（main）
+- 切换按钮从独立 btn-small 改为内联格式：`‹ #39 '白月光' ›`
+- 主题文字用 accent 颜色，‹ › 无边框，整体更紧凑
+
+### ✅ 搜索框优化（PR#17）
+- 添加 SVG 搜索图标，删掉过长 placeholder
+- 字号统一到 12px，删除 16px 媒体查询 hack
+
+### ✅ 全局按钮字号与高度统一（PR#17）
+- 所有按钮类加 `line-height: 1.4` + `white-space: nowrap`
+
+---
+
+## 经验教训（调试 / 协作）
+
+- **序号标记法**：在元素文字后加 ①②③ 调试序号，能快速识别哪些元素共用同一个 class，沟通字号调整时效率大幅提升。
+- **Python 脚本处理 unicode escape**：index.html 里的汉字以 `常` 形式存储时，Edit 工具的字符串匹配会失败。用 Python 按字节操作可以绕过这个问题。
+- **git rebase 而不是 merge**：PR 分支落后 main 时，用 `git rebase origin/main` 让 PR 分支的提交重新接在最新 main 上，再 `git push --force-with-lease` 推送，保持历史线性干净。`--force-with-lease` 比 `--force` 安全，会检查远端有没有被别人改过。
+- **cherry-pick**：可以把另一个分支上的单个 commit 搬到当前分支，不用整个分支 merge。
+- **CSS 层叠顺序**：媒体查询 `@media` 不是"更强的规则"，它和普通规则平等竞争，写在文件前面就会被后面的普通规则覆盖。
+- **color-mix()**：`color-mix(in srgb, #f4845f 25%, transparent)` 直接生成半透明色，比手写 rgba 更灵活，可以引用 CSS 变量。
+- **.nojekyll 文件**：GitHub Pages 部署静态 HTML 时必须在根目录放这个空文件，否则 Jekyll 构建会报错（38 次才解决）。
+
+---
+
+## 下一步
+
+### 继续完善 Settings 里的标签管理（第三页）
+
+目前标签管理页面（设置 → 管理标签组 → 展开某组）交互和 UI 仍需改进：
+- 排版和字号不协调，输入框偏小
+- Done 按钮行为：应该保存并返回上一级（当前分支 PR#16 已有改动，待审阅）
+- 整体交互体验待打磨
+
+### 旧标签数据兼容 ⏳
 
 旧数据 `"晴 Sunny"` 和新标签 `"晴"` 是两个不同字符串，筛选时无法合并命中。
 
 方案（不改数据库）：在 `getSongTags()` 里自动去掉末尾英文，让旧数据展示和筛选都和新标签一致。
-
-### 2. Settings 里可以编辑预设标签组 ⏳
-
-现在 preset groups（weather / place / time / mood）是写死在代码里的。
-V5 要在设置页面里让用户可以自己增删改预设标签组的内容。
-
----
-
-## 标签系统（v3.3，已完成）
-
-**已上线状态**：
-- 存储：`tags.list` 数组，旧格式自动兼容
-- 展示：统一胶囊样式（--muted 淡底 + --text 文字），不按分类染色，总览最多 4 个 + N
-- 提交：自由输入框（回车/逗号添加），quick tags 按历史频率前 8，每首歌最多 8 个标签
-- 搜索：单一搜索框，范围覆盖歌名、歌手、主题、note、标签、留言，筛选逻辑 OR
-- `getSongTags(song)` 统一转换新旧格式，所有渲染/筛选/统计都用这个函数
-
-**分组定义**：
-- preset：weather / place / time / mood
-- custom（展示分类，不写进数据）：scene / texture / memory / other
 
 ---
 
