@@ -202,6 +202,20 @@
 
   /* ── 临时字号预览 ── */
   .fz-preview-btn { position: fixed; bottom: 72px; right: 24px; width: 40px; height: 40px; border: 2px solid var(--border); background: var(--cream); color: var(--text); cursor: pointer; font-size: 10px; font-family: inherit; box-shadow: 3px 3px 0 var(--shadow); display: flex; align-items: center; justify-content: center; z-index: 100; line-height: 1.2; text-align: center; font-weight: 700; }
+  /* 临时分组角标 */
+  .fz-mark::after { font-size: 8px !important; color: #e06 !important; vertical-align: super; font-weight: 400; font-style: normal; }
+  .song-title::after         { content: " ①"; font-size: 8px; color: #e06; vertical-align: super; }
+  .song-artist::after        { content: " ②"; font-size: 8px; color: #e06; vertical-align: super; }
+  .tag::after                { content: " ③"; font-size: 8px; color: #e06; vertical-align: super; }
+  .note::after               { content: " ④"; font-size: 8px; color: #e06; vertical-align: super; }
+  .theme-title::after        { content: " ⑤"; font-size: 8px; color: #e06; vertical-align: super; }
+  .filter-tag::after         { content: " ⑥"; font-size: 8px; color: #e06; vertical-align: super; }
+  .filter-cat-btn::after     { content: " ⑥"; font-size: 8px; color: #e06; vertical-align: super; }
+  .filter-row-label::after   { content: " ⑦"; font-size: 8px; color: #e06; vertical-align: super; }
+  .col-label::after          { content: " ⑧"; font-size: 8px; color: #e06; vertical-align: super; }
+  .btn::after                { content: " ⑨"; font-size: 8px; color: #e06; vertical-align: super; }
+  .comment-bubble::after     { content: " ⑩"; font-size: 8px; color: #e06; vertical-align: super; }
+  .mobile-switcher button::after { content: " ⑪"; font-size: 8px; color: #e06; vertical-align: super; }
   /* 中档 +1px */
   body.fz-md { font-size: 14px; }
   body.fz-md .tag, body.fz-md .filter-tag, body.fz-md .filter-cat-btn,
