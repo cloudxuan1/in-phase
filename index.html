@@ -1139,7 +1139,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs, favTags, 
       }
     }, tag);
   };
-  // preset groups + custom + "常用 Quick" (for the preset row)
+  // preset groups + custom + "常用" (for the preset row)
   const moreGroups = [
     ...Object.entries(TAGS).map(([cat, tags]) => ({ label: TAG_LABELS[cat], tags, cat })),
     allCustomTags.length > 0 && { label: "自定義", tags: allCustomTags, cat: "custom" },
@@ -2122,7 +2122,7 @@ function App() {
         }, "\u00D7")
       ),
       React.createElement("div", { className: "tag-section" },
-        React.createElement("span", { className: "tag-section-label", style: { color: "#9b6ec8" } }, "\u5E38\u7528 Quick"),
+        React.createElement("span", { className: "tag-section-label", style: { color: "#9b6ec8" } }, "\u5E38\u7528"),
         React.createElement("div", { className: "tag-row" }, quickTags.map(tagBtn))
       ),
       Object.entries(TAGS).map(([cat, tags]) => React.createElement("div", { key: cat, className: "tag-section" },
