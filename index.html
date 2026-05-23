@@ -140,6 +140,14 @@
   .filter-more-btn.open { background: var(--accent); border-color: var(--accent); color: var(--cream); }
   .filter-clear { padding: 3px 8px; font-size: 10px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; font-family: inherit; }
   .filter-more-panel { padding: 8px 16px 4px; border-top: 1px dashed var(--light); }
+  .filter-fav-add-btn { padding: 3px 8px; font-size: 10px; border: 1px solid var(--shadow); background: transparent; color: #8a7a68; cursor: pointer; font-family: inherit; }
+  .filter-fav-picker { position: fixed; z-index: 200; left: 8px; right: 8px; top: 10vh; max-height: 80vh; background: var(--card); border: 2px solid var(--border); box-shadow: 4px 4px 0 var(--shadow); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; box-sizing: border-box; }
+  .filter-fav-picker-header { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--light); position: sticky; top: 0; background: var(--card); z-index: 1; }
+  .filter-fav-picker-search { flex: 1; padding: 5px 10px; border: 1px solid var(--light); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; }
+  .filter-fav-picker-close { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 15px; line-height: 1; padding: 0 2px; font-family: inherit; }
+  .filter-fav-picker-group { padding: 8px 10px 4px; }
+  .filter-fav-picker-group-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-bottom: 6px; }
+  .filter-fav-picker-tags { display: flex; flex-wrap: wrap; gap: 4px; }
   .filter-more-search { width: 100%; padding: 5px 10px; border: 1px solid var(--light); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; margin-bottom: 8px; box-sizing: border-box; }
   .filter-group-label { font-size: 10px; letter-spacing: 1px; color: var(--muted); }
   .filter-group-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 8px; }
@@ -1105,13 +1113,15 @@ function SongCard({
 }
 
 // ─── Tag Filter ──────────────────────────────────────────────────────────────────────
-function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
-  const [moreOpen, setMoreOpen] = useState(false);
+function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs, favTags, setFavTags }) {
   const [openGroup, setOpenGroup] = useState(null);
   const [panelStyle, setPanelStyle] = useState({});
   const [suggestOpen, setSuggestOpen] = useState(false);
+  const [favPickerOpen, setFavPickerOpen] = useState(false);
+  const [favPickerQ, setFavPickerQ] = useState("");
   const wrapRef = React.useRef(null);
   const morePanelRef = React.useRef(null);
+  const favPickerRef = React.useRef(null);
   const quickTags = computeQuickTags(pairs);
   const allCustomTags = computeAllCustomTags(pairs);
   const tagBtn = tag => {
@@ -1127,10 +1137,24 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
       }
     }, tag);
   };
+  // preset groups + custom + "常用 Quick" (for the preset row)
   const moreGroups = [
     ...Object.entries(TAGS).map(([cat, tags]) => ({ label: TAG_LABELS[cat], tags, cat })),
-    allCustomTags.length > 0 && { label: "自定義", tags: allCustomTags, cat: "custom" }
+    allCustomTags.length > 0 && { label: "自定義", tags: allCustomTags, cat: "custom" },
+    quickTags.length > 0 && { label: "常用 Quick", tags: quickTags, cat: "quick" }
   ].filter(Boolean);
+  // all tags available in the fav picker: preset groups + custom + orphan favTags
+  const pickerGroups = (() => {
+    const presetAndCustom = [
+      ...Object.entries(TAGS).map(([cat, tags]) => ({ label: TAG_LABELS[cat], tags, cat })),
+      allCustomTags.length > 0 && { label: "自定義", tags: allCustomTags, cat: "custom" }
+    ].filter(Boolean);
+    const knownTags = new Set(presetAndCustom.flatMap(g => g.tags));
+    const orphans = favTags.filter(t => !knownTags.has(t));
+    return orphans.length > 0
+      ? [...presetAndCustom, { label: "其他 Other", tags: orphans, cat: "orphan" }]
+      : presetAndCustom;
+  })();
   const renderPanel = () => {
     const activeGroup = moreGroups.find(g => g.cat === openGroup || (g.cat === "custom" && openGroup === "custom-expanded"));
     return React.createElement(React.Fragment, null,
@@ -1188,9 +1212,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
   React.useEffect(() => {
     if (!showSuggest) return;
     const handler = e => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
-        setSuggestOpen(false);
-      }
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setSuggestOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -1198,9 +1220,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
   React.useEffect(() => {
     if (!openGroup) return;
     const close = e => {
-      if (morePanelRef.current && !morePanelRef.current.contains(e.target)) {
-        setOpenGroup(null);
-      }
+      if (morePanelRef.current && !morePanelRef.current.contains(e.target)) setOpenGroup(null);
     };
     const onScroll = () => setOpenGroup(null);
     document.addEventListener("mousedown", close);
@@ -1210,6 +1230,18 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
       window.removeEventListener("scroll", onScroll);
     };
   }, [openGroup]);
+  React.useEffect(() => {
+    if (!favPickerOpen) return;
+    const close = e => {
+      if (favPickerRef.current && !favPickerRef.current.contains(e.target)) {
+        setFavPickerOpen(false);
+        setFavPickerQ("");
+      }
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [favPickerOpen]);
+  const favPickerQlow = favPickerQ.trim().toLowerCase();
   return React.createElement(React.Fragment, null,
     React.createElement("div", { className: "filter-bar" },
       React.createElement("div", { className: "filter-search-wrap", ref: wrapRef },
@@ -1228,7 +1260,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
         )
       ),
       activeTags.length > 0 && React.createElement("div", { className: "filter-row" },
-        React.createElement("span", { className: "filter-row-label" }, "標籤："),
+        React.createElement("span", { className: "filter-row-label" }, "已選："),
         activeTags.map(tag => {
           const col = TAG_COLORS[getTagCategory(tag)];
           return React.createElement("span", {
@@ -1239,16 +1271,56 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs }) {
         React.createElement("button", { className: "filter-clear", onClick: clearTags }, "×")
       ),
       React.createElement("div", { className: "filter-row" },
-        React.createElement("span", { className: "filter-row-label" }, "常用："),
-        quickTags.map(tagBtn),
+        React.createElement("span", { className: "filter-row-label" }, "喜歡："),
+        favTags.map(tagBtn),
         React.createElement("button", {
-          className: "filter-more-btn" + (moreOpen ? " open" : ""),
-          onClick: () => setMoreOpen(o => !o)
-        }, moreOpen ? "更多 ▴" : "更多 ▾")
+          className: "filter-fav-add-btn",
+          onClick: () => setFavPickerOpen(true)
+        }, "＋")
       )
     ),
-    moreOpen && React.createElement("div", { className: "filter-more-panel", ref: morePanelRef },
+    React.createElement("div", { className: "filter-more-panel", ref: morePanelRef },
       renderPanel()
+    ),
+    favPickerOpen && React.createElement("div", { className: "filter-fav-picker", ref: favPickerRef },
+      React.createElement("div", { className: "filter-fav-picker-header" },
+        React.createElement("input", {
+          className: "filter-fav-picker-search",
+          placeholder: "搜索标签…",
+          value: favPickerQ,
+          onChange: e => setFavPickerQ(e.target.value),
+          autoFocus: true
+        }),
+        React.createElement("button", {
+          className: "filter-fav-picker-close",
+          onClick: () => { setFavPickerOpen(false); setFavPickerQ(""); }
+        }, "×")
+      ),
+      pickerGroups.map(({ label, tags, cat }) => {
+        const visible = favPickerQlow
+          ? tags.filter(t => t.toLowerCase().includes(favPickerQlow))
+          : tags;
+        if (visible.length === 0) return null;
+        return React.createElement("div", { key: cat, className: "filter-fav-picker-group" },
+          React.createElement("div", { className: "filter-fav-picker-group-label" }, label),
+          React.createElement("div", { className: "filter-fav-picker-tags" },
+            visible.map(tag => {
+              const isFav = favTags.includes(tag);
+              const col = TAG_COLORS[getTagCategory(tag)];
+              return React.createElement("button", {
+                key: tag, className: "filter-tag",
+                style: {
+                  border: `1px solid ${isFav ? col : "var(--shadow)"}`,
+                  background: isFav ? `color-mix(in srgb, ${col} 25%, transparent)` : "transparent",
+                  color: isFav ? col : "#8a7a68"
+                },
+                onClick: () => setFavTags(prev =>
+                  prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
+              }, tag);
+            })
+          )
+        );
+      })
     )
   );
 }
@@ -1727,6 +1799,7 @@ function App() {
     headphoneType: "wired"
   });
   const [customTags, setCustomTags] = useState([]);
+  const [favTags, setFavTags] = useState([]);
   const [presetGroups, setPresetGroups] = useState(DEFAULT_PRESET_GROUPS);
   const [exMode, setExMode] = useState("claude");
   const [pendingIdx, setPendingIdx] = useState(0);
@@ -1762,6 +1835,8 @@ function App() {
           headphoneType: s.headphone_type || "wired"
         });
         setCustomTags(s.custom_tags || []);
+        const rawFav = Array.isArray(s.fav_tags) ? s.fav_tags : [];
+        setFavTags([...new Set(rawFav.filter(t => typeof t === "string" && t.trim() !== ""))]);
         try {
           const pg = isValidPresetGroups(s.preset_groups) ? s.preset_groups : DEFAULT_PRESET_GROUPS;
           setPresetGroups(pg);
@@ -1849,9 +1924,10 @@ function App() {
       user_name: settings.userName,
       headphone_type: settings.headphoneType,
       custom_tags: customTags,
-      preset_groups: presetGroups
+      preset_groups: presetGroups,
+      fav_tags: [...new Set(favTags.filter(t => typeof t === "string" && t.trim() !== ""))]
     });
-  }, [settings, customTags, presetGroups]);
+  }, [settings, customTags, presetGroups, favTags]);
   async function searchMusic() {
     if (!exSong.trim() && !exArtist.trim()) return;
     setSearching(true);
@@ -2107,7 +2183,9 @@ function App() {
     clearTags: () => setAt([]),
     q: q,
     setQ: setQ,
-    pairs: pairs
+    pairs: pairs,
+    favTags: favTags,
+    setFavTags: setFavTags
   }), /*#__PURE__*/React.createElement("div", {
     className: "mobile-switcher"
   }, /*#__PURE__*/React.createElement("button", {
