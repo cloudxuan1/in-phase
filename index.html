@@ -1187,7 +1187,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs, favTags, 
               setPanelStyle({ left: left + "px", top: top + "px", width: PANEL_W + "px" });
               setOpenGroup(cat);
             }
-          }, label, hasActive && !isOpen ? ` (${activeCount})` : null);
+          }, label);
         })
       ),
       activeGroup && React.createElement("div", { className: "filter-tag-panel", style: panelStyle },
