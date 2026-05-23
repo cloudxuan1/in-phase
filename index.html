@@ -1874,6 +1874,13 @@ function App() {
     }
   }, [pairs, pendingIdx]);
   useEffect(() => { rebuildTagLookups(presetGroups); }, [presetGroups]);
+  const favMounted = React.useRef(false);
+  useEffect(() => {
+    if (!favMounted.current) { favMounted.current = true; return; }
+    api("/settings", "PATCH", {
+      fav_tags: [...new Set(favTags.filter(t => typeof t === "string" && t.trim() !== ""))]
+    });
+  }, [favTags]);
   const toggleTag = t => setAt(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t]);
   const filtered = pairs.filter(p => {
     const songTags = [...getSongTags(p.claude_song), ...getSongTags(p.user_song)];
