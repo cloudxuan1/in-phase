@@ -130,7 +130,7 @@
   .filter-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
   .filter-tag { padding: 3px 8px; font-size: 12px; cursor: pointer; font-family: inherit; }
   .filter-search-wrap { position: relative; }
-  .filter-search { width: 100%; padding: 6px 32px 6px 10px; border: 1px solid var(--light); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; box-sizing: border-box; }
+  .filter-search { width: 100%; padding: 6px 32px 6px 10px; border: 1px solid var(--light); background: var(--cream); font-family: inherit; font-size: 12px; color: var(--text); outline: none; box-sizing: border-box; }
   .filter-search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; font-family: inherit; }
   .filter-search-icon { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--muted); display: flex; align-items: center; }
   .filter-suggest-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50; background: var(--card); border: 2px solid var(--border); padding: 8px; box-shadow: 4px 4px 0 var(--shadow); display: flex; flex-wrap: wrap; gap: 4px; box-sizing: border-box; }
@@ -150,9 +150,7 @@
   .filter-fav-picker-group-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-bottom: 6px; }
   .filter-fav-picker-tags { display: flex; flex-wrap: wrap; gap: 4px; }
   .filter-more-search { width: 100%; padding: 5px 10px; border: 1px solid var(--light); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; margin-bottom: 8px; box-sizing: border-box; }
-  @media (max-width: 768px) {
-    .filter-search, .filter-fav-picker-search { font-size: 16px; }
-  }
+
   .filter-group-label { font-size: 10px; letter-spacing: 1px; color: var(--muted); }
   .filter-group-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 8px; }
   .filter-tag-panel { position: fixed; z-index: 150; min-width: 160px; max-width: calc(100vw - 16px); max-height: 50vh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; background: var(--card); border: 2px solid var(--border); padding: 8px; box-shadow: 4px 4px 0 var(--shadow); display: flex; flex-wrap: wrap; gap: 4px; box-sizing: border-box; align-content: flex-start; }
@@ -1251,6 +1249,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs, favTags, 
       React.createElement("div", { className: "filter-search-wrap", ref: wrapRef },
         React.createElement("input", {
           className: "filter-search",
+          placeholder: "搜尋歌曲、歌手、標籤…",
           value: q,
           onChange: e => { setQ(e.target.value); setSuggestOpen(true); }
         }),
