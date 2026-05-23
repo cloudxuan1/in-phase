@@ -314,6 +314,9 @@
   .tgm-tag-chip-x { cursor: pointer; background: none; border: none; padding: 0; font-size: 13px; line-height: 1; font-family: inherit; color: inherit; opacity: .6; }
   .tgm-tag-chip-x:hover { opacity: 1; }
   .tgm-tag-add-row { display: flex; gap: 4px; margin-bottom: 8px; }
+  .tgm-add-tag-input { width: 100%; padding: 12px 14px; border: 2px solid var(--border); background: var(--cream); font-family: inherit; font-size: 13px; color: var(--text); outline: none; box-sizing: border-box; }
+  .tgm-add-tag-input:focus { border-color: var(--accent); }
+  .tgm-add-tag-input::placeholder { color: var(--muted); }
   .tgm-danger-btn { padding: 9px 10px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; font-size: 11px; font-family: inherit; width: 100%; }
   .tgm-danger-btn:hover { background: #fce4d6; }
   .tgm-add-group-btn { width: 100%; padding: 8px; border: 1px dashed var(--shadow); background: transparent; color: var(--muted); cursor: pointer; font-size: 11px; font-family: inherit; text-align: center; margin-top: 4px; }
@@ -1510,7 +1513,7 @@ function SettingsModal({
           React.createElement("div", { className: "tgm-field-label" }, "名称"),
           React.createElement("input", {
             className: "input",
-            style: { marginBottom: 0, fontSize: 13, borderColor: editingGroup.color },
+            style: { marginBottom: 0, fontSize: 14 },
             value: editingGroup.label,
             onChange: e => setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, label: e.target.value } : g))
           })
@@ -1540,12 +1543,6 @@ function SettingsModal({
                 }
               }
             }),
-            React.createElement("span", {
-              style: {
-                flex: 1, height: 34, background: editingGroup.color + "33",
-                border: `1px solid ${editingGroup.color}`, borderRadius: 2
-              }
-            })
           )
         ),
         React.createElement("div", { style: { marginBottom: 20 } },
