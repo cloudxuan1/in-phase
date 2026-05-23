@@ -301,18 +301,20 @@
   .tgm-editor { border: 1px solid var(--accent); background: var(--cream); padding: 10px; margin-bottom: 4px; }
   .tgm-editor-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
   .tgm-editor-label { font-size: 9px; color: var(--muted); white-space: nowrap; flex-shrink: 0; min-width: 28px; }
+  .tgm-field-label { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
   .tgm-color-input-wrap { display: flex; align-items: center; gap: 6px; }
   .tgm-color-input { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border: 2px solid var(--border); border-radius: 2px; padding: 0; cursor: pointer; vertical-align: middle; flex-shrink: 0; }
   .tgm-color-input::-webkit-color-swatch-wrapper { padding: 0; }
   .tgm-color-input::-webkit-color-swatch { border: none; }
   .tgm-color-input::-moz-color-swatch { border: none; }
-  .tgm-hex-input { width: 76px; padding: 4px 6px; border: 1px solid var(--border); background: var(--card); font-family: inherit; font-size: 10px; color: var(--text); outline: none; text-transform: uppercase; }
+  .tgm-hex-input { width: 80px; padding: 5px 8px; border: 1px solid var(--border); background: var(--card); font-family: inherit; font-size: 11px; color: var(--text); outline: none; text-transform: uppercase; }
   .tgm-hex-input:focus { border-color: var(--accent); }
-  .tgm-tag-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
-  .tgm-tag-chip { display: inline-flex; align-items: center; gap: 2px; padding: 2px 7px; font-size: 10px; border-radius: 99px; border: 1px solid currentColor; }
-  .tgm-tag-chip-x { cursor: pointer; background: none; border: none; padding: 0; font-size: 11px; line-height: 1; font-family: inherit; color: inherit; }
+  .tgm-tag-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .tgm-tag-chip { display: inline-flex; align-items: center; gap: 3px; padding: 4px 10px; font-size: 12px; border-radius: 99px; border: 1px solid currentColor; }
+  .tgm-tag-chip-x { cursor: pointer; background: none; border: none; padding: 0; font-size: 13px; line-height: 1; font-family: inherit; color: inherit; opacity: .6; }
+  .tgm-tag-chip-x:hover { opacity: 1; }
   .tgm-tag-add-row { display: flex; gap: 4px; margin-bottom: 8px; }
-  .tgm-danger-btn { padding: 5px 10px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; font-size: 10px; font-family: inherit; }
+  .tgm-danger-btn { padding: 9px 10px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; font-size: 11px; font-family: inherit; width: 100%; }
   .tgm-danger-btn:hover { background: #fce4d6; }
   .tgm-add-group-btn { width: 100%; padding: 8px; border: 1px dashed var(--shadow); background: transparent; color: var(--muted); cursor: pointer; font-size: 11px; font-family: inherit; text-align: center; margin-top: 4px; }
   .tgm-add-group-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -1504,58 +1506,67 @@ function SettingsModal({
   const editingGroup = presetGroups.find(g => g.key === editingKey) || null;
   const tagsPageContent = editingGroup
     ? React.createElement("div", { className: "tgm-edit-panel" },
-          React.createElement("div", { className: "tgm-editor-row" },
-            React.createElement("span", { className: "tgm-editor-label" }, "名称"),
-            React.createElement("input", {
-              className: "input",
-              style: { marginBottom: 0, flex: 1 },
-              value: editingGroup.label,
-              onChange: e => setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, label: e.target.value } : g))
-            })
-          ),
-          React.createElement("div", { className: "tgm-editor-row" },
-            React.createElement("span", { className: "tgm-editor-label" }, "颜色"),
-            React.createElement("div", { className: "tgm-color-input-wrap" },
-              React.createElement("input", {
-                type: "color",
-                className: "tgm-color-input",
-                value: editingGroup.color,
-                onChange: e => {
-                  const hex = e.target.value;
-                  setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, color: hex } : g));
-                  setHexInputs(p => ({ ...p, [editingGroup.key]: hex }));
-                }
-              }),
-              React.createElement("input", {
-                className: "tgm-hex-input",
-                value: hexInputs[editingGroup.key] !== undefined ? hexInputs[editingGroup.key] : editingGroup.color,
-                onChange: e => {
-                  const v = e.target.value;
-                  setHexInputs(p => ({ ...p, [editingGroup.key]: v }));
-                  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
-                    setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, color: v } : g));
-                  }
-                }
-              })
-            )
-          ),
-          React.createElement("div", { className: "tgm-tag-chips", style: { marginTop: 8 } },
-            editingGroup.tags.map((tag, i) => React.createElement("span", {
-              key: i,
-              className: "tgm-tag-chip",
-              style: { color: editingGroup.color, borderColor: editingGroup.color }
-            },
-              tag,
-              React.createElement("button", {
-                className: "tgm-tag-chip-x",
-                onClick: () => setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, tags: g.tags.filter((_, ti) => ti !== i) } : g))
-              }, "\xD7")
-            ))
-          ),
+        React.createElement("div", { style: { marginBottom: 16 } },
+          React.createElement("div", { className: "tgm-field-label" }, "名称"),
           React.createElement("input", {
             className: "input",
-            style: { marginTop: 6 },
-            placeholder: "新增标签，Enter / 逗号确认",
+            style: { marginBottom: 0, fontSize: 13, borderColor: editingGroup.color },
+            value: editingGroup.label,
+            onChange: e => setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, label: e.target.value } : g))
+          })
+        ),
+        React.createElement("div", { style: { marginBottom: 20 } },
+          React.createElement("div", { className: "tgm-field-label" }, "颜色"),
+          React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
+            React.createElement("input", {
+              type: "color",
+              className: "tgm-color-input",
+              style: { width: 40, height: 34, flexShrink: 0 },
+              value: editingGroup.color,
+              onChange: e => {
+                const hex = e.target.value;
+                setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, color: hex } : g));
+                setHexInputs(p => ({ ...p, [editingGroup.key]: hex }));
+              }
+            }),
+            React.createElement("input", {
+              className: "tgm-hex-input",
+              value: hexInputs[editingGroup.key] !== undefined ? hexInputs[editingGroup.key] : editingGroup.color,
+              onChange: e => {
+                const v = e.target.value;
+                setHexInputs(p => ({ ...p, [editingGroup.key]: v }));
+                if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+                  setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, color: v } : g));
+                }
+              }
+            }),
+            React.createElement("span", {
+              style: {
+                flex: 1, height: 34, background: editingGroup.color + "33",
+                border: `1px solid ${editingGroup.color}`, borderRadius: 2
+              }
+            })
+          )
+        ),
+        React.createElement("div", { style: { marginBottom: 20 } },
+          React.createElement("div", { className: "tgm-field-label" }, "标签"),
+          editingGroup.tags.length > 0
+            ? React.createElement("div", { className: "tgm-tag-chips" },
+                editingGroup.tags.map((tag, i) => React.createElement("span", {
+                  key: i, className: "tgm-tag-chip",
+                  style: { color: editingGroup.color, borderColor: editingGroup.color, background: editingGroup.color + "18" }
+                },
+                  tag,
+                  React.createElement("button", {
+                    className: "tgm-tag-chip-x",
+                    onClick: () => setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, tags: g.tags.filter((_, ti) => ti !== i) } : g))
+                  }, "\xD7")
+                ))
+              )
+            : React.createElement("div", { style: { fontSize: 11, color: "var(--muted)", marginBottom: 8 } }, "暂无标签"),
+          React.createElement("input", {
+            className: "tgm-add-tag-input",
+            placeholder: "输入标签名，Enter 或逗号确认",
             value: tagInputs[editingGroup.key] || "",
             onChange: e => {
               const v = e.target.value;
@@ -1579,13 +1590,15 @@ function SettingsModal({
                 setTagInputs(p => ({ ...p, [editingGroup.key]: "" }));
               }
             }
-          }),
+          })
+        ),
+        React.createElement("div", { style: { borderTop: "1px dashed var(--light)", paddingTop: 16 } },
           React.createElement("button", {
             className: "tgm-danger-btn",
-            style: { width: "100%", marginTop: 12 },
             onClick: () => { setPresetGroups(pg => pg.filter(g => g.key !== editingGroup.key)); setEditingKey(null); }
           }, "删除此标签组")
         )
+      )
     : React.createElement("div", null,
         presetGroups.map(group => React.createElement("div", {
           key: group.key,
