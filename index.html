@@ -200,6 +200,37 @@
   /* Scroll to top */
   .scroll-top { position: fixed; bottom: 24px; right: 24px; width: 40px; height: 40px; border: 2px solid var(--border); background: var(--card); color: var(--accent); cursor: pointer; font-size: 16px; font-family: inherit; box-shadow: 3px 3px 0 var(--shadow); display: flex; align-items: center; justify-content: center; z-index: 100; }
 
+  /* ── 临时字号预览 ── */
+  .fz-preview-btn { position: fixed; bottom: 72px; right: 24px; width: 40px; height: 40px; border: 2px solid var(--border); background: var(--cream); color: var(--text); cursor: pointer; font-size: 10px; font-family: inherit; box-shadow: 3px 3px 0 var(--shadow); display: flex; align-items: center; justify-content: center; z-index: 100; line-height: 1.2; text-align: center; font-weight: 700; }
+  /* 中档 +1px */
+  body.fz-md { font-size: 14px; }
+  body.fz-md .tag, body.fz-md .filter-tag, body.fz-md .filter-cat-btn,
+  body.fz-md .filter-row-label, body.fz-md .filter-selected-chip,
+  body.fz-md .filter-more-btn, body.fz-md .filter-clear, body.fz-md .filter-fav-add-btn,
+  body.fz-md .filter-fav-picker-group-label, body.fz-md .tgm-tag-chip,
+  body.fz-md .comments-label, body.fz-md .theme-bar, body.fz-md .hist-meta,
+  body.fz-md .mobile-switcher button, body.fz-md .footer { font-size: 12px; }
+  body.fz-md .song-artist, body.fz-md .theme-title, body.fz-md .col-label,
+  body.fz-md .comment-bubble, body.fz-md .comment-input input, body.fz-md .comment-input button,
+  body.fz-md .filter-search, body.fz-md .filter-fav-picker-search,
+  body.fz-md .hist-theme, body.fz-md .tgm-group-label { font-size: 13px; }
+  body.fz-md .song-title, body.fz-md .note, body.fz-md .btn,
+  body.fz-md .input, body.fz-md .submit-btn, body.fz-md .q-display { font-size: 15px; }
+  /* 大档 +2px */
+  body.fz-lg { font-size: 15px; }
+  body.fz-lg .tag, body.fz-lg .filter-tag, body.fz-lg .filter-cat-btn,
+  body.fz-lg .filter-row-label, body.fz-lg .filter-selected-chip,
+  body.fz-lg .filter-more-btn, body.fz-lg .filter-clear, body.fz-lg .filter-fav-add-btn,
+  body.fz-lg .filter-fav-picker-group-label, body.fz-lg .tgm-tag-chip,
+  body.fz-lg .comments-label, body.fz-lg .theme-bar, body.fz-lg .hist-meta,
+  body.fz-lg .mobile-switcher button, body.fz-lg .footer { font-size: 13px; }
+  body.fz-lg .song-artist, body.fz-lg .theme-title, body.fz-lg .col-label,
+  body.fz-lg .comment-bubble, body.fz-lg .comment-input input, body.fz-lg .comment-input button,
+  body.fz-lg .filter-search, body.fz-lg .filter-fav-picker-search,
+  body.fz-lg .hist-theme, body.fz-lg .tgm-group-label { font-size: 14px; }
+  body.fz-lg .song-title, body.fz-lg .note, body.fz-lg .btn,
+  body.fz-lg .input, body.fz-lg .submit-btn, body.fz-lg .q-display { font-size: 16px; }
+
   /* Loading */
   .loading { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
   @keyframes dots { 0%,20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%,100% { content: '...'; } }
@@ -1793,6 +1824,7 @@ function App() {
   const [q, setQ] = useState("");
   const [ms, setMs] = useState("both");
   const [scrollTop, setScrollTop] = useState(false);
+  const [fzLevel, setFzLevel] = useState(0);
   const [showSet, setShowSet] = useState(false);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
@@ -2613,7 +2645,17 @@ function App() {
       top: 0,
       behavior: "smooth"
     })
-  }, "\u2191"), showSet && /*#__PURE__*/React.createElement(SettingsModal, {
+  }, "\u2191"), /*#__PURE__*/React.createElement("button", {
+    className: "fz-preview-btn",
+    title: "\u4e34\u65f6\u5b57\u53f7\u9884\u89c8\uff1a\u9ed8\u2192\u4e2d\u2192\u5927\u2192\u9ed8",
+    onClick: () => {
+      const next = (fzLevel + 1) % 3;
+      document.body.classList.remove("fz-md", "fz-lg");
+      if (next === 1) document.body.classList.add("fz-md");
+      if (next === 2) document.body.classList.add("fz-lg");
+      setFzLevel(next);
+    }
+  }, "\u5b57 " + ["\u9ed8", "\u4e2d", "\u5927"][fzLevel]), showSet && /*#__PURE__*/React.createElement(SettingsModal, {
     settings: settings,
     setSettings: setSettings,
     onSave: saveSettings,
