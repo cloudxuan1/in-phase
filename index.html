@@ -2441,40 +2441,38 @@ function App() {
     style: {
       display: "flex",
       alignItems: "center",
-      gap: 8,
-      marginBottom: 8
+      padding: "10px 0 14px",
+      borderTop: "1px dashed var(--light)",
+      borderBottom: "1px dashed var(--light)",
+      marginBottom: 14
     }
   }, /*#__PURE__*/React.createElement("button", {
-    className: "btn small",
     disabled: pendingCount <= 1,
     onClick: e => {
       e.stopPropagation();
       setPendingIdx(i => pendingCount ? (i - 1 + pendingCount) % pendingCount : 0);
     },
     style: {
-      fontSize: 12,
-      padding: "4px 10px",
-      opacity: pendingCount <= 1 ? .35 : 1
+      background: "none", border: "none", cursor: pendingCount <= 1 ? "default" : "pointer",
+      fontSize: 22, color: "var(--muted)", padding: "0 8px", lineHeight: 1,
+      opacity: pendingCount <= 1 ? .25 : .6, fontFamily: "inherit", flexShrink: 0
     }
   }, "‹"), /*#__PURE__*/React.createElement("div", {
     style: {
-      flex: 1,
-      textAlign: "center",
-      fontSize: 10,
-      color: "var(--muted)",
-      letterSpacing: 1
+      flex: 1, textAlign: "center", fontSize: 14, fontWeight: 700,
+      color: "var(--accent)", overflow: "hidden", whiteSpace: "nowrap",
+      textOverflow: "ellipsis", padding: "0 4px"
     }
-  }, "#", pending.id, " \"", pending.theme, "\""), /*#__PURE__*/React.createElement("button", {
-    className: "btn small",
+  }, "#", pending.id, "\u00a0\"", pending.theme, "\""), /*#__PURE__*/React.createElement("button", {
     disabled: pendingCount <= 1,
     onClick: e => {
       e.stopPropagation();
       setPendingIdx(i => pendingCount ? (i + 1) % pendingCount : 0);
     },
     style: {
-      fontSize: 12,
-      padding: "4px 10px",
-      opacity: pendingCount <= 1 ? .35 : 1
+      background: "none", border: "none", cursor: pendingCount <= 1 ? "default" : "pointer",
+      fontSize: 22, color: "var(--muted)", padding: "0 8px", lineHeight: 1,
+      opacity: pendingCount <= 1 ? .25 : .6, fontFamily: "inherit", flexShrink: 0
     }
   }, "›")), /*#__PURE__*/React.createElement("div", {
     style: {
