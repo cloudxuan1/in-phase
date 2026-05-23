@@ -2464,7 +2464,7 @@ function App() {
       color: "var(--muted)",
       letterSpacing: 1
     }
-  }, "待回應 Pending"), /*#__PURE__*/React.createElement("button", {
+  }, "#", pending.id, " \"", pending.theme, "\""), /*#__PURE__*/React.createElement("button", {
     className: "btn small",
     disabled: pendingCount <= 1,
     onClick: e => {
@@ -2477,8 +2477,6 @@ function App() {
       opacity: pendingCount <= 1 ? .35 : 1
     }
   }, "›")), /*#__PURE__*/React.createElement("div", {
-    className: "q-display"
-  }, "#", pending.id, "  \"", pending.theme, "\""), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
       color: "#7a7068",
