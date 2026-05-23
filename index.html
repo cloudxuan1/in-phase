@@ -149,6 +149,9 @@
   .filter-fav-picker-group-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-bottom: 6px; }
   .filter-fav-picker-tags { display: flex; flex-wrap: wrap; gap: 4px; }
   .filter-more-search { width: 100%; padding: 5px 10px; border: 1px solid var(--light); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; margin-bottom: 8px; box-sizing: border-box; }
+  @media (max-width: 768px) {
+    .filter-search, .filter-fav-picker-search { font-size: 16px; }
+  }
   .filter-group-label { font-size: 10px; letter-spacing: 1px; color: var(--muted); }
   .filter-group-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 8px; }
   .filter-tag-panel { position: fixed; z-index: 150; min-width: 160px; max-width: calc(100vw - 16px); max-height: 50vh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; background: var(--card); border: 2px solid var(--border); padding: 8px; box-shadow: 4px 4px 0 var(--shadow); display: flex; flex-wrap: wrap; gap: 4px; box-sizing: border-box; align-content: flex-start; }
@@ -1277,10 +1280,8 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs, favTags, 
           className: "filter-fav-add-btn",
           onClick: () => setFavPickerOpen(true)
         }, "＋")
-      )
-    ),
-    React.createElement("div", { className: "filter-more-panel", ref: morePanelRef },
-      renderPanel()
+      ),
+      React.createElement("div", { ref: morePanelRef }, renderPanel())
     ),
     favPickerOpen && React.createElement("div", { className: "filter-fav-picker", ref: favPickerRef },
       React.createElement("div", { className: "filter-fav-picker-header" },
@@ -1302,7 +1303,7 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs, favTags, 
           : tags;
         if (visible.length === 0) return null;
         return React.createElement("div", { key: cat, className: "filter-fav-picker-group" },
-          React.createElement("div", { className: "filter-fav-picker-group-label" }, label),
+          React.createElement("div", { className: "filter-fav-picker-group-label", style: { color: TAG_COLORS[cat] || "var(--muted)" } }, label),
           React.createElement("div", { className: "filter-fav-picker-tags" },
             visible.map(tag => {
               const isFav = favTags.includes(tag);
