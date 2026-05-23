@@ -1748,8 +1748,10 @@ function SettingsModal({
     },
     onClick: () => {
       if (page === "tags" && editingGroup) {
+        onSave();
         setEditingKey(null);
       } else if (page === "tags") {
+        onSave();
         setPage("settings");
       } else {
         onSave();
