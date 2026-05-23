@@ -151,7 +151,9 @@
   .filter-fav-picker-tags { display: flex; flex-wrap: wrap; gap: 4px; }
   .filter-more-search { width: 100%; padding: 5px 10px; border: 1px solid var(--light); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; margin-bottom: 8px; box-sizing: border-box; }
   @media (max-width: 768px) {
-    .filter-search, .filter-fav-picker-search { font-size: 16px; }
+    .filter-search, .filter-fav-picker-search,
+    .input, .tgm-add-tag-input, .tgm-hex-input,
+    .comment-input input, .filter-more-search { font-size: 16px; }
   }
   .filter-group-label { font-size: 10px; letter-spacing: 1px; color: var(--muted); }
   .filter-group-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 8px; }
@@ -217,7 +219,7 @@
   .comment-bubble::after     { content: " ⑩"; font-size: 8px; color: #e06; vertical-align: super; }
   .mobile-switcher button::after { content: " ⑪"; font-size: 8px; color: #e06; vertical-align: super; }
   /* 中档 +1px */
-  body.fz-md { font-size: 14px; }
+  /* body font-size intentionally not overridden — only target specific classes */
   body.fz-md .tag, body.fz-md .filter-tag, body.fz-md .filter-cat-btn,
   body.fz-md .filter-row-label, body.fz-md .filter-selected-chip,
   body.fz-md .filter-more-btn, body.fz-md .filter-clear, body.fz-md .filter-fav-add-btn,
@@ -231,7 +233,6 @@
   body.fz-md .song-title, body.fz-md .note, body.fz-md .btn,
   body.fz-md .input, body.fz-md .submit-btn, body.fz-md .q-display { font-size: 15px; }
   /* 大档 +2px */
-  body.fz-lg { font-size: 15px; }
   body.fz-lg .tag, body.fz-lg .filter-tag, body.fz-lg .filter-cat-btn,
   body.fz-lg .filter-row-label, body.fz-lg .filter-selected-chip,
   body.fz-lg .filter-more-btn, body.fz-lg .filter-clear, body.fz-lg .filter-fav-add-btn,
