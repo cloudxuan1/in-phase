@@ -274,6 +274,11 @@
   .tgm-back-btn { background: none; border: none; cursor: pointer; font-size: 11px; color: var(--accent); font-family: inherit; padding: 0; flex-shrink: 0; }
   .tgm-edit-panel-title { font-size: 11px; color: var(--text); font-weight: 600; flex: 1; text-align: center; }
   .tgm-edit-panel { padding: 10px 0 4px; }
+  .fav-btn { background: none; border: none; padding: 2px 4px; font-size: 13px; color: var(--muted); cursor: pointer; line-height: 1; border-radius: 4px; transition: color 0.15s; position: absolute; bottom: 4px; right: 4px; }
+  .fav-btn.faved { color: var(--accent); }
+  .fav-btn:hover:not(.readonly) { color: var(--accent); }
+  .fav-btn.readonly { cursor: default; pointer-events: none; }
+  .fav-empty { text-align: center; color: var(--muted); font-size: 11px; padding: 24px 0; line-height: 2; }
 </style>
 </head>
 <body>
@@ -842,7 +847,9 @@ function SongCard({
   onUpdateSong,
   settings,
   comments,
-  side
+  side,
+  favPairs,
+  onToggleFav
 }) {
   const [draft, setDraft] = useState("");
   const [editing, setEditing] = useState(false);
@@ -855,6 +862,8 @@ function SongCard({
   const pairThemeLine = `${qIcon} ask：“${pair.theme || ""}”`;
   const targetExp = `${side === "claude" ? "u" : "c"}-${pair.id}`;
   const [searching, setSearching] = useState(false);
+  const isFaved = favPairs?.some(f => f.pair_id === pair.id && f.side === side) ?? false;
+  const isReadonlyFav = side === "claude";
   if (!song) return /*#__PURE__*/React.createElement("div", {
     className: `card-empty ${pairGlow ? "pair-glow" : ""}`,
     onClick: onEmptyClick,
@@ -922,7 +931,12 @@ function SongCard({
     className: "album-label"
   }, song.album), /*#__PURE__*/React.createElement("div", {
     className: "pair-pill"
-  }, `#${pair.id}`)), /*#__PURE__*/React.createElement("div", {
+  }, `#${pair.id}`), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: `fav-btn ${isFaved ? "faved" : ""} ${isReadonlyFav ? "readonly" : ""}`,
+    onClick: e => { e.stopPropagation(); if (!isReadonlyFav) onToggleFav?.(pair.id); },
+    "aria-label": isFaved ? "Unsave card" : "Save card"
+  }, isFaved ? "♥" : "♡")), /*#__PURE__*/React.createElement("div", {
     className: "song-title"
   }, song.title), /*#__PURE__*/React.createElement("div", {
     className: "song-artist"
@@ -1807,6 +1821,7 @@ function App() {
   });
   const [customTags, setCustomTags] = useState([]);
   const [favTags, setFavTags] = useState([]);
+  const [favPairs, setFavPairs] = useState([]);
   const [presetGroups, setPresetGroups] = useState(DEFAULT_PRESET_GROUPS);
   const [exMode, setExMode] = useState("claude");
   const [pendingIdx, setPendingIdx] = useState(0);
@@ -1825,8 +1840,9 @@ function App() {
   const loadData = useCallback(async () => {
     try {
       setErr(null);
-      const [p, c, s] = await Promise.all([api("/pairs"), api("/comments"), api("/settings")]);
+      const [p, c, s, fav] = await Promise.all([api("/pairs"), api("/comments"), api("/settings"), api("/favorites")]);
       setPairs(p || []);
+      setFavPairs(fav || []);
       const grouped = {};
       (c || []).forEach(x => {
         if (!grouped[x.pair_id]) grouped[x.pair_id] = [];
@@ -1883,6 +1899,25 @@ function App() {
     });
   }, [favTags]);
   const toggleTag = t => setAt(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t]);
+  const toggleFav = async (pairId) => {
+    const side = "user";
+    const exists = favPairs.some(f => f.pair_id === pairId && f.side === side);
+    const prevFavPairs = favPairs;
+    const nextFavPairs = exists
+      ? favPairs.filter(f => !(f.pair_id === pairId && f.side === side))
+      : [...favPairs, { pair_id: pairId, side }];
+    setFavPairs(nextFavPairs);
+    try {
+      if (exists) {
+        await api("/favorites", "DELETE", { pair_id: pairId, side });
+      } else {
+        await api("/favorites", "POST", { pair_id: pairId, side });
+      }
+    } catch (err) {
+      console.warn("Failed to toggle favorite:", err);
+      setFavPairs(prevFavPairs);
+    }
+  };
   const filtered = pairs.filter(p => {
     const songTags = [...getSongTags(p.claude_song), ...getSongTags(p.user_song)];
     const commentText = (comments[p.id] || []).map(c => c.text).join(" ");
@@ -1895,6 +1930,9 @@ function App() {
     const tagMatch = at.length === 0 || at.some(t => songTags.includes(t));
     return searchMatch && tagMatch;
   });
+  const favFiltered = ms === "both"
+    ? filtered
+    : filtered.filter(p => favPairs.some(f => f.pair_id === p.id && f.side === ms));
   const jump = useCallback(id => {
     const pair = pairs.find(p => p.id === id);
     const side = pair?.asked_by === "user" ? "u" : "c";
@@ -2229,7 +2267,9 @@ function App() {
     className: "col claude-col"
   }, /*#__PURE__*/React.createElement("div", {
     className: "col-label"
-  }, settings.claudeIcon, " ", settings.claudeName), filtered.map(p => /*#__PURE__*/React.createElement("div", {
+  }, settings.claudeIcon, " ", settings.claudeName), ms === "claude" && favFiltered.length === 0 && /*#__PURE__*/React.createElement("div", {
+    className: "fav-empty"
+  }, "♡", /*#__PURE__*/React.createElement("br", null), "還沒有收藏"), favFiltered.map(p => /*#__PURE__*/React.createElement("div", {
     key: `c-${p.id}`,
     ref: el => refs.current[`c-${p.id}`] = el
   }, /*#__PURE__*/React.createElement(SongCard, {
@@ -2257,14 +2297,18 @@ function App() {
     onUpdateSong: updateSong,
     settings: settings,
     comments: comments[p.id] || [],
-    side: "claude"
+    side: "claude",
+    favPairs: favPairs,
+    onToggleFav: toggleFav
   })))), /*#__PURE__*/React.createElement("div", {
     className: "divider"
   }), /*#__PURE__*/React.createElement("div", {
     className: "col user-col"
   }, /*#__PURE__*/React.createElement("div", {
     className: "col-label"
-  }, settings.userName, " ", settings.userIcon), filtered.map(p => /*#__PURE__*/React.createElement("div", {
+  }, settings.userName, " ", settings.userIcon), ms === "user" && favFiltered.length === 0 && /*#__PURE__*/React.createElement("div", {
+    className: "fav-empty"
+  }, "♡", /*#__PURE__*/React.createElement("br", null), "還沒有收藏", /*#__PURE__*/React.createElement("br", null), "點卡片上的 ♡ 來收藏"), favFiltered.map(p => /*#__PURE__*/React.createElement("div", {
     key: `u-${p.id}`,
     ref: el => refs.current[`u-${p.id}`] = el
   }, /*#__PURE__*/React.createElement(SongCard, {
@@ -2297,7 +2341,9 @@ function App() {
     onUpdateSong: updateSong,
     settings: settings,
     comments: comments[p.id] || [],
-    side: "user"
+    side: "user",
+    favPairs: favPairs,
+    onToggleFav: toggleFav
   })))))), page === "exchange" && /*#__PURE__*/React.createElement("div", {
     className: "exchange"
   }, /*#__PURE__*/React.createElement("div", {

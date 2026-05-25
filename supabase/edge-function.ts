@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "Content-Type",
-  "Access-Control-Allow-Methods": "GET, POST, PATCH, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
 };
 
 const supabase = createClient(
@@ -138,6 +138,61 @@ Deno.serve(async (req: Request) => {
         .single();
       if (error) throw error;
       return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // GET /favorites
+    if (req.method === "GET" && path === "/favorites") {
+      const { data, error } = await supabase
+        .from("crosstalk_favorites")
+        .select("pair_id, side");
+      if (error) throw error;
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // POST /favorites — upsert to avoid duplicate constraint errors
+    if (req.method === "POST" && path === "/favorites") {
+      const { pair_id, side } = await req.json();
+      const validSide = side === "claude" || side === "user";
+      const validPairId = typeof pair_id === "number";
+      if (!validPairId || !validSide) {
+        return new Response(JSON.stringify({ error: "Invalid favorite payload" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data, error } = await supabase
+        .from("crosstalk_favorites")
+        .upsert({ pair_id, side }, { onConflict: "pair_id,side" })
+        .select("pair_id, side")
+        .single();
+      if (error) throw error;
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // DELETE /favorites
+    if (req.method === "DELETE" && path === "/favorites") {
+      const { pair_id, side } = await req.json();
+      const validSide = side === "claude" || side === "user";
+      const validPairId = typeof pair_id === "number";
+      if (!validPairId || !validSide) {
+        return new Response(JSON.stringify({ error: "Invalid favorite payload" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { error } = await supabase
+        .from("crosstalk_favorites")
+        .delete()
+        .eq("pair_id", pair_id)
+        .eq("side", side);
+      if (error) throw error;
+      return new Response(JSON.stringify({ ok: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
