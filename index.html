@@ -274,9 +274,10 @@
   .tgm-back-btn { background: none; border: none; cursor: pointer; font-size: 11px; color: var(--accent); font-family: inherit; padding: 0; flex-shrink: 0; }
   .tgm-edit-panel-title { font-size: 11px; color: var(--text); font-weight: 600; flex: 1; text-align: center; }
   .tgm-edit-panel { padding: 10px 0 4px; }
-  .fav-btn { background: none; border: none; padding: 2px 4px; font-size: 13px; color: var(--muted); cursor: pointer; line-height: 1; border-radius: 4px; transition: color 0.15s; position: absolute; bottom: 4px; right: 4px; }
-  .fav-btn.faved { color: var(--accent); }
-  .fav-btn:hover:not(.readonly) { color: var(--accent); }
+  .fav-btn { background: none; border: none; padding: 2px 4px; font-size: 13px; color: var(--muted); cursor: pointer; line-height: 1; border-radius: 4px; transition: color 0.15s, opacity 0.15s; position: absolute; bottom: 4px; right: 4px; opacity: 1; }
+  .fav-btn.faved-single { color: var(--accent); opacity: 0.45; }
+  .fav-btn.faved-both { color: var(--accent); opacity: 1; }
+  .fav-btn:hover:not(.readonly) { color: var(--accent); opacity: 0.7; }
   .fav-btn.readonly { cursor: default; pointer-events: none; }
   .fav-empty { text-align: center; color: var(--muted); font-size: 11px; padding: 24px 0; line-height: 2; }
 </style>
@@ -864,6 +865,9 @@ function SongCard({
   const [searching, setSearching] = useState(false);
   const isFaved = favPairs?.some(f => f.pair_id === pair.id && f.side === side) ?? false;
   const isReadonlyFav = side === "claude";
+  const otherSide = side === "claude" ? "user" : "claude";
+  const isOtherFaved = favPairs?.some(f => f.pair_id === pair.id && f.side === otherSide) ?? false;
+  const favClass = !isFaved ? "" : isOtherFaved ? "faved-both" : "faved-single";
   if (!song) return /*#__PURE__*/React.createElement("div", {
     className: `card-empty ${pairGlow ? "pair-glow" : ""}`,
     onClick: onEmptyClick,
@@ -933,7 +937,7 @@ function SongCard({
     className: "pair-pill"
   }, `#${pair.id}`), /*#__PURE__*/React.createElement("button", {
     type: "button",
-    className: `fav-btn ${isFaved ? "faved" : ""} ${isReadonlyFav ? "readonly" : ""}`,
+    className: `fav-btn ${favClass} ${isReadonlyFav ? "readonly" : ""}`,
     onClick: e => { e.stopPropagation(); if (!isReadonlyFav) onToggleFav?.(pair.id); },
     "aria-label": isFaved ? "Unsave card" : "Save card"
   }, isFaved ? "♥" : "♡")), /*#__PURE__*/React.createElement("div", {
