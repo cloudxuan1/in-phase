@@ -146,7 +146,7 @@ Deno.serve(async (req: Request) => {
     if (req.method === "GET" && path === "/favorites") {
       const { data, error } = await supabase
         .from("crosstalk_favorites")
-        .select("pair_id, side");
+        .select("pair_id, side, created_at");
       if (error) throw error;
       return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

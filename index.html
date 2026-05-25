@@ -281,6 +281,8 @@
   .fav-btn:hover:not(.readonly) { color: var(--accent); opacity: 0.7; }
   .fav-btn.readonly { cursor: default; pointer-events: none; }
   .fav-empty { text-align: center; color: var(--muted); font-size: 11px; padding: 24px 0; line-height: 2; }
+  .fav-sort-btn { margin-left: auto; background: none; border: 1px solid var(--light); border-radius: 4px; font-size: 9px; font-family: inherit; color: var(--muted); cursor: pointer; padding: 1px 6px; }
+  .fav-sort-btn.active { border-color: var(--accent); color: var(--accent); }
 </style>
 </head>
 <body>
@@ -1829,6 +1831,7 @@ function App() {
   const [customTags, setCustomTags] = useState([]);
   const [favTags, setFavTags] = useState([]);
   const [favPairs, setFavPairs] = useState([]);
+  const [favSort, setFavSort] = useState("default");
   const [presetGroups, setPresetGroups] = useState(DEFAULT_PRESET_GROUPS);
   const [exMode, setExMode] = useState("claude");
   const [pendingIdx, setPendingIdx] = useState(0);
@@ -1937,9 +1940,17 @@ function App() {
     const tagMatch = at.length === 0 || at.some(t => songTags.includes(t));
     return searchMatch && tagMatch;
   });
-  const favFiltered = ms === "both"
-    ? filtered
-    : filtered.filter(p => favPairs.some(f => f.pair_id === p.id && f.side === ms));
+  const favFiltered = (() => {
+    if (ms === "both") return filtered;
+    const favSide = favPairs.filter(f => f.side === ms);
+    const base = filtered.filter(p => favSide.some(f => f.pair_id === p.id));
+    if (favSort !== "faved") return base;
+    return [...base].sort((a, b) => {
+      const fa = favSide.find(f => f.pair_id === a.id);
+      const fb = favSide.find(f => f.pair_id === b.id);
+      return new Date(fb.created_at) - new Date(fa.created_at);
+    });
+  })();
   const jump = useCallback(id => {
     const pair = pairs.find(p => p.id === id);
     const side = pair?.asked_by === "user" ? "u" : "c";
@@ -2274,7 +2285,10 @@ function App() {
     className: "col claude-col"
   }, /*#__PURE__*/React.createElement("div", {
     className: "col-label"
-  }, settings.claudeIcon, " ", settings.claudeName), ms === "claude" && favFiltered.length === 0 && /*#__PURE__*/React.createElement("div", {
+  }, settings.claudeIcon, " ", settings.claudeName, ms === "claude" && /*#__PURE__*/React.createElement("button", {
+    className: `fav-sort-btn ${favSort === "faved" ? "active" : ""}`,
+    onClick: () => setFavSort(s => s === "faved" ? "default" : "faved")
+  }, favSort === "faved" ? "最新收藏 ↓" : "默認排序")), ms === "claude" && favFiltered.length === 0 && /*#__PURE__*/React.createElement("div", {
     className: "fav-empty"
   }, "♡", /*#__PURE__*/React.createElement("br", null), "還沒有收藏"), favFiltered.map(p => /*#__PURE__*/React.createElement("div", {
     key: `c-${p.id}`,
@@ -2313,7 +2327,10 @@ function App() {
     className: "col user-col"
   }, /*#__PURE__*/React.createElement("div", {
     className: "col-label"
-  }, settings.userName, " ", settings.userIcon), ms === "user" && favFiltered.length === 0 && /*#__PURE__*/React.createElement("div", {
+  }, settings.userName, " ", settings.userIcon, ms === "user" && /*#__PURE__*/React.createElement("button", {
+    className: `fav-sort-btn ${favSort === "faved" ? "active" : ""}`,
+    onClick: () => setFavSort(s => s === "faved" ? "default" : "faved")
+  }, favSort === "faved" ? "最新收藏 ↓" : "默認排序")), ms === "user" && favFiltered.length === 0 && /*#__PURE__*/React.createElement("div", {
     className: "fav-empty"
   }, "♡", /*#__PURE__*/React.createElement("br", null), "還沒有收藏", /*#__PURE__*/React.createElement("br", null), "點卡片上的 ♡ 來收藏"), favFiltered.map(p => /*#__PURE__*/React.createElement("div", {
     key: `u-${p.id}`,
