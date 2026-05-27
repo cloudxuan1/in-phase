@@ -367,11 +367,8 @@ function SetupScreen({
       textAlign: "center"
     }
   }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 28,
-      marginBottom: 8
-    }
-  }, "\uD83C\uDFB5"), /*#__PURE__*/React.createElement("div", {
+    style: { marginBottom: 8 }
+  }, React.createElement(PH, { type: "wired", size: 64 })), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 22,
       fontWeight: 800,
@@ -379,7 +376,7 @@ function SetupScreen({
       letterSpacing: 4,
       marginBottom: 4
     }
-  }, "CROSSTALK"), /*#__PURE__*/React.createElement("div", {
+  }, "IN~PHASE"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
       color: "var(--muted)",
@@ -840,6 +837,42 @@ function PH({
     height: "4",
     fill: c
   }));
+}
+
+// ─── Apple Touch Icon (dynamic by headphone type) ───────────────────────
+function updateAppleTouchIcon(type) {
+  try {
+    const S = 180, sc = S / 48;
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = S;
+    const ctx = canvas.getContext("2d");
+    const a = "#f4845f", b = "#faf0e6", c = "#8a8078", d = "#d4a574";
+    ctx.fillStyle = "#f2ede8"; ctx.fillRect(0, 0, S, S);
+    function r(x, y, w, h, col, op) {
+      ctx.globalAlpha = op != null ? op : 1;
+      ctx.fillStyle = col;
+      ctx.fillRect(x*sc, y*sc, w*sc, h*sc);
+      ctx.globalAlpha = 1;
+    }
+    if (type === "wireless") {
+      r(6,14,8,10,a); r(8,16,4,6,b); r(9,24,2,6,a); r(9,30,2,2,c);
+      r(34,14,8,10,a); r(36,16,4,6,b); r(37,24,2,6,a); r(37,30,2,2,c);
+    } else if (type === "overear") {
+      r(12,4,24,2,c); r(10,6,2,2,c); r(36,6,2,2,c);
+      r(8,8,2,10,c); r(38,8,2,10,c);
+      r(1,16,12,18,a); r(3,18,8,14,b); r(4,20,6,10,d,.2);
+      r(35,16,12,18,a); r(37,18,8,14,b); r(38,20,6,10,d,.2);
+    } else { // wired
+      r(2,12,10,14,a); r(4,14,6,10,b); r(5,16,4,6,a,.3);
+      r(36,12,10,14,a); r(38,14,6,10,b); r(39,16,4,6,a,.3);
+      r(6,26,2,6,c); r(40,26,2,6,c);
+      r(8,32,2,2,c); r(38,32,2,2,c);
+      r(10,34,28,2,c); r(22,36,4,4,c);
+    }
+    let link = document.querySelector('link[rel="apple-touch-icon"]');
+    if (!link) { link = document.createElement("link"); link.rel = "apple-touch-icon"; document.head.appendChild(link); }
+    link.href = canvas.toDataURL("image/png");
+  } catch(e) {}
 }
 
 // ─── Song Card ──────────────────────────────────────────────────────────
@@ -1747,6 +1780,7 @@ function SettingsModal({
   ), page === "tags" && tagsPageContent, page !== "tags" && /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       localStorage.removeItem("crosstalk_api_url");
+      history.replaceState(null, "", window.location.pathname + window.location.search);
       window.location.reload();
     },
     style: {
@@ -1916,6 +1950,7 @@ function App() {
     }
   }, [pairs, pendingIdx]);
   useEffect(() => { rebuildTagLookups(presetGroups); }, [presetGroups]);
+  useEffect(() => { updateAppleTouchIcon(settings.headphoneType); }, [settings.headphoneType]);
   const favMounted = React.useRef(false);
   useEffect(() => {
     if (!favMounted.current) { favMounted.current = true; return; }
@@ -2102,7 +2137,7 @@ function App() {
       color: "var(--accent)",
       fontSize: 11
     }
-  }, "Loading Crosstalk", /*#__PURE__*/React.createElement("span", {
+  }, "Loading IN~PHASE", /*#__PURE__*/React.createElement("span", {
     className: "dots"
   })));
   if (err) return /*#__PURE__*/React.createElement("div", {
