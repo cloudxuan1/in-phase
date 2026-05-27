@@ -1750,7 +1750,7 @@ function SettingsModal({
   ), page === "tags" && tagsPageContent, page !== "tags" && /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       localStorage.removeItem("crosstalk_api_url");
-      window.location.reload();
+      window.location.replace(window.location.pathname);
     },
     style: {
       width: "100%",
