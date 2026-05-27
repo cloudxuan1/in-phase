@@ -1793,7 +1793,8 @@ function SettingsModal({
         onClick: () => { setPresetGroups(DEFAULT_PRESET_GROUPS); setOpenKey(null); setShowResetConfirm(false); }
       }, "確認恢復")
     )
-  ), deleteConfirmKey && React.createElement("div", {
+  ))
+  , deleteConfirmKey && React.createElement("div", {
     style: { position: "fixed", inset: 0, background: "rgba(90,83,76,.5)", zIndex: 400, display: "flex", alignItems: "center", justifyContent: "center" },
     onClick: () => setDeleteConfirmKey(null)
   }, React.createElement("div", {
@@ -1813,7 +1814,7 @@ function SettingsModal({
         }
       }, "确认删除")
     )
-  ))));
+  )));
 }
 
 function App() {
