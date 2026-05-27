@@ -1,9 +1,9 @@
-# Claude.md — in-phase 项目说明
+# CLAUDE.md — in-phase 项目说明
 
 ## 项目概述
 
 in-phase 是一个双人音乐交换网站。两个人轮流出题（theme），各自选一首歌回应，附上 note 和标签。
-部署在 GitHub Pages，数据存在 Supabase。
+部署在 GitHub Pages / Netlify，数据存在 Supabase。
 名字含义：in-phase = 同相位，两个波完全同步才能叠加共振。
 
 ---
@@ -24,17 +24,17 @@ in-phase 是一个双人音乐交换网站。两个人轮流出题（theme），
 
 - **未经允许不得直接推 main。** 每次改动在分支开发，等用户说"在 main 直接改"才能直接推。
 - **"在 main 直接改"** 授权仅限该次任务，不延续到下一个任务。
-- 纯文档改动（Claude.md 等）和简单小修可以直接推 main；大改动必须走 PR 流程。
+- 纯文档改动（CLAUDE.md 等）和简单小修可以直接推 main；大改动必须走 PR 流程。
 - 每次改动原子化，一个 commit 一件事，方便回退。
 
 ---
 
 ## 技术栈
 
-- 纯前端单文件：index.html（HTML + CSS + JS，React CDN）
+- 纯前端单文件：index.html（HTML + CSS + JS，React CDN，无 JSX，全用 React.createElement）
 - 数据库：Supabase（project ref: kfgtrcdjusfljnvmwpsu）
-- 后端：Supabase Edge Function（/pairs /comments /settings /search）
-- 部署：GitHub Pages，push 到 main 自动部署
+- 后端：Supabase Edge Function（crosstalk-api）
+- 部署：GitHub Pages + Netlify，push 到 main 自动部署
 
 ---
 
@@ -56,10 +56,11 @@ in-phase 是一个双人音乐交换网站。两个人轮流出题（theme），
 
 ## 数据库（结构不能改）
 
-三张表：
+四张表：
 - `crosstalk_pairs` — 歌曲配对（theme, asked_by, claude_song, user_song）
 - `crosstalk_comments` — 留言（pair_id, side, sender, text）
-- `crosstalk_settings` — 设置（icon, custom_tags, fav_tags 等）
+- `crosstalk_settings` — 设置（claude_icon, user_icon, headphone_type, custom_tags, fav_tags, preset_groups 等）
+- `crosstalk_favorites` — 收藏（pair_id, side ['claude'|'user'], created_at，UNIQUE pair_id+side）
 
 Song JSON 格式：
 ```json
@@ -70,6 +71,13 @@ Song JSON 格式：
 ```
 
 旧格式（兼容）：`{ "tags": { "weather": "晴 Sunny", "mood": "懷念 Nostalgic" } }`
+
+Edge Function 路由（`/crosstalk-api`）：
+- GET/POST/PATCH `/pairs` `/pairs/:id`
+- GET/POST `/comments`
+- GET/PATCH `/settings`
+- GET `/search?q=`
+- GET/POST/DELETE `/favorites`
 
 ---
 
@@ -95,9 +103,7 @@ Song JSON 格式：
 - React 派生 className（`left-expanded` / `right-expanded`）加在 `.columns` 上
 - `.col { min-width: 0 }` 阻止内容撑宽已定好的列
 
-**❌ 弯路**：逐个修 input / note 的 min-width、`contain: inline-size`（展开卡和折叠卡一样宽）、`position: absolute/sticky`、全局 `overflow: hidden`。
-
-**教训**：用户说"顶部没有同步放大"就是答案——顶部列名也要跟着列宽走，不要只修卡片内部。
+**❌ 弯路**：逐个修 input / note 的 min-width、`contain: inline-size`、`position: absolute/sticky`、全局 `overflow: hidden`。
 
 ---
 
@@ -105,7 +111,7 @@ Song JSON 格式：
 
 **正确方案**：viewport meta 加 `user-scalable=no`，一次性禁止点击放大和捏合缩放。
 
-**❌ 弯路**：给 input 加 `font-size: 16px`；`@media` 媒体查询写在普通规则前面会被后面的规则覆盖失效（CSS 层叠按文件顺序，后写优先，`@media` 不是"更强的规则"）。
+**❌ 弯路**：给 input 加 `font-size: 16px`；`@media` 媒体查询写在普通规则前面会被后面的规则覆盖失效。
 
 ---
 
@@ -113,13 +119,13 @@ Song JSON 格式：
 
 **原因**：`saveSettings` 只在设置弹窗点"保存"时触发。
 
-**正确方案**：用 `useEffect` 监听 `favTags` 变化自动 PATCH `fav_tags`；用 `useRef(false)` 跳过首次渲染，避免挂载时触发空写入。
+**正确方案**：`useEffect` 监听 `favTags` 变化自动 PATCH；用 `useRef(false)` 跳过首次渲染。
 
 ---
 
 ### ✅ GitHub Pages Jekyll 构建失败
 
-**方案**：根目录加空文件 `.nojekyll`，Pages 直接伺服静态文件，不走 Jekyll。
+**方案**：根目录加空文件 `.nojekyll`。
 
 ---
 
@@ -127,7 +133,23 @@ Song JSON 格式：
 
 **原因**：DotGothic16 字体在 12px 下不同汉字字形高度略有差异。
 
-**方案**：所有按钮类加 `line-height: 1.4`（统一行高）+ `white-space: nowrap`（防换行）。
+**方案**：所有按钮类加 `line-height: 1.4` + `white-space: nowrap`。
+
+---
+
+### ✅ 更換 Supabase URL 按钮无效（PR#19）
+
+**原因**：`getApiUrl()` 优先读 `window.location.hash`；`localStorage.removeItem` 后 reload，hash 仍在，URL 被重新写回。
+
+**正确方案**：reload 前先 `history.replaceState(null, "", pathname + search)` 清除 hash。
+
+---
+
+### ✅ 删除确认 modal 点垃圾桶不出现（PR#19）
+
+**原因**：`deleteConfirmKey && React.createElement(...)` 作为第三个参数传给了 `showResetConfirm` backdrop 的 `React.createElement`，导致它嵌套在 showResetConfirm 里——只有 showResetConfirm 为 true 时才渲染。
+
+**正确方案**：两个 modal 在 `.overlay` 下并列，不嵌套。数括号时要逐层追踪。
 
 ---
 
@@ -135,39 +157,52 @@ Song JSON 格式：
 
 ### ✅ 收藏标签（喜欢）系统（PR#15）
 - Filter 新增"喜欢"行，显示已收藏标签，点击直接筛选
-- ＋按钮打开大弹窗，按分类展示所有标签，支持搜索，点击收藏/取消
+- ＋按钮打开大弹窗，按分类展示所有标签，支持搜索
 - `fav_tags JSONB` 列加到 `crosstalk_settings`，自动持久化
 
 ### ✅ 预设分类按钮化（PR#15）
 - Filter 预设行从平铺标签改为分类按钮（天气/场所/时间/心情/自定义/常用）
-- 点击任意分类按钮弹出小浮窗显示该类标签
 
 ### ✅ Exchange 导航重设计（main）
-- 切换按钮改为内联格式：`‹ #39 '白月光' ›`，主题文字用 accent 颜色，整体更紧凑
+- 切换按钮改为内联格式：`‹ #39 '白月光' ›`，主题文字用 accent 颜色
 
 ### ✅ 搜索框 + 按钮统一（PR#17）
-- 搜索框添加 SVG 图标，还原 placeholder，删除 16px 媒体查询 hack
-- 所有按钮加 `line-height: 1.4` + `white-space: nowrap`
+- 搜索框添加 SVG 图标，所有按钮加 `line-height: 1.4`
+
+### ✅ 卡片收藏功能（PR#18）
+- 新表 `crosstalk_favorites`，Edge Function 加 GET/POST/DELETE `/favorites`
+- 三态心形：♡（未收藏）→ 淡♥（单侧收藏）→ 实♥（双侧都收藏）
+- 心形在歌名行，点击乐观更新 + API 持久化
+- `favSort` 状态：默认排序 / 最新收藏在前（按 created_at 降序）
+
+### ✅ 标签管理 Accordion 重设计（PR#19）
+- 一次只能展开一个标签组，点开另一个自动关闭
+- 展开面板：组名内联编辑、原生色盘改色、标签 chip + 新增输入框（回车/逗号/+）
+- 删除两条路径：垃圾桶 → modal 确认；左滑 → 两步确认
+- 移除旧 editingKey / hexInputs / editingGroup 全套状态
+
+### ✅ IN~PHASE 品牌化（PR#19）
+- SetupScreen：CROSSTALK → IN~PHASE，🎵 → 像素耳机图（PH 组件）
+- Loading 界面：Loading Crosstalk → Loading IN~PHASE
+- PWA apple-touch-icon：Canvas 绘制像素耳机，随 `headphoneType` 动态更新
 
 ---
 
 ## 经验教训（调试 / 协作）
 
-- **序号标记法**：在元素文字后加 ①②③ 调试序号，能快速识别哪些元素共用同一个 class，沟通字号调整效率大幅提升。
-- **Python 脚本处理 unicode escape**：index.html 里的汉字以 `常` 形式存储时，Edit 工具字符串匹配会失败，用 Python 按字节操作可以绕过。
-- **git rebase + force-with-lease**：PR 分支落后 main 时，`git rebase origin/main` 让提交重新接在最新 main 上，再 `git push --force-with-lease` 推送（比 `--force` 安全，会检查远端是否被改过）。
-- **cherry-pick**：把另一个分支上的单个 commit 搬到当前分支，不用整个分支 merge。
+- **序号标记法**：在元素文字后加 ①②③ 调试序号，能快速识别哪些元素共用同一个 class。
+- **Python 脚本处理 unicode escape**：index.html 里的汉字以 `常` 形式存储时，Edit 工具字符串匹配会失败，用 Python 按行操作可以绕过。
+- **React.createElement 括号计数**：多层嵌套时极易把一个 modal 当成另一个 modal 的子元素传进去，导致条件渲染互相依赖。改之前先数清楚哪个 `)` 关哪个 `createElement`。
+- **git rebase + force-with-lease**：PR 分支落后 main 时，`git rebase origin/main` 让提交重新接在最新 main 上，再 `git push --force-with-lease` 推送。
+- **cherry-pick**：把另一个分支上的单个 commit 搬到当前分支。
 - **color-mix()**：`color-mix(in srgb, var(--accent) 25%, transparent)` 直接生成半透明色，比手写 rgba 更灵活。
+- **hash URL 持久化陷阱**：`localStorage.removeItem` + `reload` 不等于"清除配置"——`getApiUrl()` 先读 hash，hash 不清就白清。
 
 ---
 
 ## 下一步
 
-### 继续完善 Settings 里的标签管理（第三页）
-目前设置 → 管理标签组 → 展开某组的交互和 UI 仍需改进：排版字号不协调、输入框偏小、整体体验待打磨。
-
-### 喜欢的卡片收藏功能 ⏳
-允许用户收藏喜欢的音乐交换卡片。具体交互和实现方式待定，需要和用户进一步讨论。
+目前功能已较完整，暂无明确待开发项。下次讨论后更新。
 
 ---
 
