@@ -252,26 +252,31 @@
   .tgm-group-label { flex: 1; font-size: 11px; color: var(--text); }
   .tgm-group-count { font-size: 9px; color: var(--muted); }
   .tgm-edit-arrow { font-size: 10px; color: var(--muted); flex-shrink: 0; }
-  .tgm-editor { border: 1px solid var(--accent); background: var(--cream); padding: 10px; margin-bottom: 4px; }
-  .tgm-editor-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
-  .tgm-editor-label { font-size: 9px; color: var(--muted); white-space: nowrap; flex-shrink: 0; min-width: 28px; }
-  .tgm-color-input-wrap { display: flex; align-items: center; gap: 6px; }
-  .tgm-color-input { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border: 2px solid var(--border); border-radius: 2px; padding: 0; cursor: pointer; vertical-align: middle; flex-shrink: 0; }
-  .tgm-color-input::-webkit-color-swatch-wrapper { padding: 0; }
-  .tgm-color-input::-webkit-color-swatch { border: none; }
-  .tgm-color-input::-moz-color-swatch { border: none; }
-  .tgm-hex-input { width: 76px; padding: 4px 6px; border: 1px solid var(--border); background: var(--card); font-family: inherit; font-size: 10px; color: var(--text); outline: none; text-transform: uppercase; }
-  .tgm-hex-input:focus { border-color: var(--accent); }
+  .tgm-accordion-body { padding: 12px 10px 10px; border: 1px solid var(--light); border-top: none; background: var(--cream); margin-bottom: 4px; }
+  .tgm-name-row { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; border-bottom: 1px solid var(--light); padding-bottom: 6px; }
+  .tgm-name-input { flex: 1; border: none; background: transparent; font-family: inherit; font-size: 11px; font-weight: 700; color: var(--text); padding: 2px 0; outline: none; min-width: 0; }
+  .tgm-name-input:focus { outline: none; }
+  .tgm-name-row:focus-within { border-bottom-color: var(--accent); }
+  .tgm-trash-btn { background: none; border: none; padding: 2px; color: var(--muted); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; }
+  .tgm-trash-btn:hover { color: var(--accent); }
+  .tgm-accordion-body .input { font-size: 11px; padding: 8px 10px; }
+  .tgm-color-row { display: flex; align-items: center; gap: 8px; }
+  .tgm-color-btn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(0,0,0,.15); cursor: pointer; flex-shrink: 0; display: inline-block; }
+  .tgm-color-label { font-size: 10px; color: var(--muted); }
+  .tgm-swipe-hint { font-size: 9px; color: var(--muted); text-align: right; padding: 4px 2px 6px; letter-spacing: .5px; opacity: .7; }
   .tgm-tag-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
   .tgm-tag-chip { display: inline-flex; align-items: center; gap: 2px; padding: 2px 7px; font-size: 10px; border-radius: 99px; border: 1px solid currentColor; }
   .tgm-tag-chip-x { cursor: pointer; background: none; border: none; padding: 0; font-size: 11px; line-height: 1; font-family: inherit; color: inherit; }
   .tgm-tag-add-row { display: flex; gap: 4px; margin-bottom: 8px; }
+  .tgm-tag-add-row .input { font-size: 12px; padding: 5px 8px; margin-bottom: 0; }
+  .tgm-tag-add-row .btn { padding: 5px 10px; font-size: 12px; }
   .tgm-danger-btn { padding: 5px 10px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; font-size: 10px; font-family: inherit; }
   .tgm-danger-btn:hover { background: #fce4d6; }
   .tgm-add-group-btn { width: 100%; padding: 8px; border: 1px dashed var(--shadow); background: transparent; color: var(--muted); cursor: pointer; font-size: 11px; font-family: inherit; text-align: center; margin-top: 4px; }
   .tgm-add-group-btn:hover { border-color: var(--accent); color: var(--accent); }
   .tgm-swipe-wrapper { position: relative; overflow: hidden; margin-bottom: 4px; }
-  .tgm-swipe-delete { position: absolute; right: 0; top: 0; bottom: 0; width: 68px; background: var(--accent); color: #fff; border: none; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .tgm-swipe-delete { position: absolute; right: 0; top: 0; bottom: 0; width: 68px; background: var(--accent); color: #fff; border: none; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; transition: font-size 0.1s; }
+  .tgm-swipe-delete.confirming { font-size: 10px; background: #c0392b; }
   .tgm-back-btn { background: none; border: none; cursor: pointer; font-size: 11px; color: var(--accent); font-family: inherit; padding: 0; flex-shrink: 0; }
   .tgm-edit-panel-title { font-size: 11px; color: var(--text); font-weight: 600; flex: 1; text-align: center; }
   .tgm-edit-panel { padding: 10px 0 4px; }
@@ -362,11 +367,8 @@ function SetupScreen({
       textAlign: "center"
     }
   }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 28,
-      marginBottom: 8
-    }
-  }, "\uD83C\uDFB5"), /*#__PURE__*/React.createElement("div", {
+    style: { marginBottom: 8 }
+  }, React.createElement(PH, { type: "wired", size: 64 })), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 22,
       fontWeight: 800,
@@ -374,7 +376,7 @@ function SetupScreen({
       letterSpacing: 4,
       marginBottom: 4
     }
-  }, "CROSSTALK"), /*#__PURE__*/React.createElement("div", {
+  }, "IN~PHASE"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
       color: "var(--muted)",
@@ -835,6 +837,42 @@ function PH({
     height: "4",
     fill: c
   }));
+}
+
+// ─── Apple Touch Icon (dynamic by headphone type) ───────────────────────
+function updateAppleTouchIcon(type) {
+  try {
+    const S = 180, sc = S / 48;
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = S;
+    const ctx = canvas.getContext("2d");
+    const a = "#f4845f", b = "#faf0e6", c = "#8a8078", d = "#d4a574";
+    ctx.fillStyle = "#f2ede8"; ctx.fillRect(0, 0, S, S);
+    function r(x, y, w, h, col, op) {
+      ctx.globalAlpha = op != null ? op : 1;
+      ctx.fillStyle = col;
+      ctx.fillRect(x*sc, y*sc, w*sc, h*sc);
+      ctx.globalAlpha = 1;
+    }
+    if (type === "wireless") {
+      r(6,14,8,10,a); r(8,16,4,6,b); r(9,24,2,6,a); r(9,30,2,2,c);
+      r(34,14,8,10,a); r(36,16,4,6,b); r(37,24,2,6,a); r(37,30,2,2,c);
+    } else if (type === "overear") {
+      r(12,4,24,2,c); r(10,6,2,2,c); r(36,6,2,2,c);
+      r(8,8,2,10,c); r(38,8,2,10,c);
+      r(1,16,12,18,a); r(3,18,8,14,b); r(4,20,6,10,d,.2);
+      r(35,16,12,18,a); r(37,18,8,14,b); r(38,20,6,10,d,.2);
+    } else { // wired
+      r(2,12,10,14,a); r(4,14,6,10,b); r(5,16,4,6,a,.3);
+      r(36,12,10,14,a); r(38,14,6,10,b); r(39,16,4,6,a,.3);
+      r(6,26,2,6,c); r(40,26,2,6,c);
+      r(8,32,2,2,c); r(38,32,2,2,c);
+      r(10,34,28,2,c); r(22,36,4,4,c);
+    }
+    let link = document.querySelector('link[rel="apple-touch-icon"]');
+    if (!link) { link = document.createElement("link"); link.rel = "apple-touch-icon"; document.head.appendChild(link); }
+    link.href = canvas.toDataURL("image/png");
+  } catch(e) {}
 }
 
 // ─── Song Card ──────────────────────────────────────────────────────────
@@ -1448,9 +1486,10 @@ function SettingsModal({
   });
   const [customError, setCustomError] = useState("");
   const [page, setPage] = useState("settings");
-  const [editingKey, setEditingKey] = useState(null);
+  const [openKey, setOpenKey] = useState(null);
+  const [deleteConfirmKey, setDeleteConfirmKey] = useState(null);
+  const [swipeConfirmKey, setSwipeConfirmKey] = useState(null);
   const [tagInputs, setTagInputs] = useState({});
-  const [hexInputs, setHexInputs] = useState({});
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [swipeKey, setSwipeKey] = useState(null);
   const touchRef = useRef({ x: 0, key: null });
@@ -1478,140 +1517,131 @@ function SettingsModal({
     setCustomSide(null);
     setCustomError("");
   };
-  const editingGroup = presetGroups.find(g => g.key === editingKey) || null;
-  const tagsPageContent = editingGroup
-    ? React.createElement("div", { className: "tgm-edit-panel" },
-          React.createElement("div", { className: "tgm-editor-row" },
-            React.createElement("span", { className: "tgm-editor-label" }, "名称"),
+  const addTag = key => {
+    const tag = (tagInputs[key] || "").trim();
+    if (tag && !presetGroups.find(g => g.key === key)?.tags.includes(tag)) {
+      setPresetGroups(pg => pg.map(g => g.key === key ? { ...g, tags: [...g.tags, tag] } : g));
+    }
+    setTagInputs(p => ({ ...p, [key]: "" }));
+  };
+  const tagsPageContent = React.createElement("div", null,
+    presetGroups.map(group => {
+      const isOpen = openKey === group.key;
+      const isConfirm = deleteConfirmKey === group.key;
+      return React.createElement("div", { key: group.key, className: "tgm-swipe-wrapper" },
+        !isOpen && React.createElement("button", {
+          className: `tgm-swipe-delete${swipeConfirmKey === group.key ? " confirming" : ""}`,
+          onClick: e => {
+            e.stopPropagation();
+            if (swipeConfirmKey === group.key) {
+              setPresetGroups(pg => pg.filter(g => g.key !== group.key));
+              setSwipeKey(null);
+              setSwipeConfirmKey(null);
+            } else {
+              setSwipeConfirmKey(group.key);
+            }
+          }
+        }, swipeConfirmKey === group.key ? "确认删除" : "删除"),
+        React.createElement("div", {
+          className: "tgm-group-row",
+          style: { transform: !isOpen && swipeKey === group.key ? "translateX(-68px)" : "translateX(0)", transition: "transform 0.2s ease", marginBottom: 0 },
+          onClick: () => {
+            if (swipeKey === group.key) { setSwipeKey(null); return; }
+            const next = isOpen ? null : group.key;
+            setOpenKey(next);
+            setSwipeKey(null);
+            if (!isOpen) setDeleteConfirmKey(null);
+          },
+          onTouchStart: e => { touchRef.current = { x: e.touches[0].clientX, key: group.key }; },
+          onTouchMove: e => {
+            if (touchRef.current.key !== group.key) return;
+            if (isOpen) return;
+            const dx = e.touches[0].clientX - touchRef.current.x;
+            if (dx < -40) setSwipeKey(group.key);
+            else if (dx > 20) { setSwipeKey(null); setSwipeConfirmKey(null); }
+          }
+        },
+          React.createElement("div", { className: "tgm-color-dot", style: { background: group.color } }),
+          React.createElement("span", { className: "tgm-group-label" }, group.label),
+          React.createElement("span", { className: "tgm-group-count" }, group.tags.length + " 个"),
+          React.createElement("span", { className: "tgm-edit-arrow" }, isOpen ? "∧" : "∨")
+        ),
+        isOpen && React.createElement("div", { className: "tgm-accordion-body" },
+          React.createElement("div", { className: "tgm-name-row" },
             React.createElement("input", {
-              className: "input",
-              style: { marginBottom: 0, flex: 1 },
-              value: editingGroup.label,
-              onChange: e => setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, label: e.target.value } : g))
-            })
+              className: "tgm-name-input",
+              value: group.label,
+              placeholder: "标签组名称",
+              onChange: e => setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, label: e.target.value } : g))
+            }),
+            React.createElement("button", {
+              className: "tgm-trash-btn",
+              onClick: e => { e.stopPropagation(); setDeleteConfirmKey(group.key); }
+            }, /*#__PURE__*/React.createElement("svg", { width: "13", height: "14", viewBox: "0 0 13 14", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinecap: "round", strokeLinejoin: "round" },
+              React.createElement("polyline", { points: "0.5,3 12.5,3" }),
+              React.createElement("path", { d: "M4,3V2a1,1,0,0,1,1-1h3a1,1,0,0,1,1,1v1" }),
+              React.createElement("path", { d: "M1.5,3l.75,9.5a1,1,0,0,0,1,.5h6.5a1,1,0,0,0,1-.5L11.5,3" }),
+              React.createElement("line", { x1: "5", y1: "6.5", x2: "5", y2: "10.5" }),
+              React.createElement("line", { x1: "8", y1: "6.5", x2: "8", y2: "10.5" })
+            ))
           ),
-          React.createElement("div", { className: "tgm-editor-row" },
-            React.createElement("span", { className: "tgm-editor-label" }, "颜色"),
-            React.createElement("div", { className: "tgm-color-input-wrap" },
-              React.createElement("input", {
-                type: "color",
-                className: "tgm-color-input",
-                value: editingGroup.color,
-                onChange: e => {
-                  const hex = e.target.value;
-                  setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, color: hex } : g));
-                  setHexInputs(p => ({ ...p, [editingGroup.key]: hex }));
-                }
-              }),
-              React.createElement("input", {
-                className: "tgm-hex-input",
-                value: hexInputs[editingGroup.key] !== undefined ? hexInputs[editingGroup.key] : editingGroup.color,
-                onChange: e => {
-                  const v = e.target.value;
-                  setHexInputs(p => ({ ...p, [editingGroup.key]: v }));
-                  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
-                    setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, color: v } : g));
-                  }
-                }
-              })
-            )
+          React.createElement("div", { className: "tgm-color-row" },
+            React.createElement("label", { htmlFor: `color-${group.key}`, className: "tgm-color-btn", style: { background: group.color } }),
+            React.createElement("input", {
+              type: "color", id: `color-${group.key}`,
+              value: group.color,
+              style: { position: "absolute", opacity: 0, width: 0, height: 0, pointerEvents: "none" },
+              onChange: e => setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, color: e.target.value } : g))
+            }),
+            React.createElement("span", { className: "tgm-color-label" }, "颜色，点击更改")
           ),
-          React.createElement("div", { className: "tgm-tag-chips", style: { marginTop: 8 } },
-            editingGroup.tags.map((tag, i) => React.createElement("span", {
-              key: i,
-              className: "tgm-tag-chip",
-              style: { color: editingGroup.color, borderColor: editingGroup.color }
+          React.createElement("div", { className: "tgm-tag-chips", style: { marginTop: 10 } },
+            group.tags.map((tag, i) => React.createElement("span", {
+              key: i, className: "tgm-tag-chip",
+              style: { color: group.color, borderColor: group.color }
             },
               tag,
               React.createElement("button", {
                 className: "tgm-tag-chip-x",
-                onClick: () => setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, tags: g.tags.filter((_, ti) => ti !== i) } : g))
+                onClick: () => setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, tags: g.tags.filter((_, ti) => ti !== i) } : g))
               }, "\xD7")
             ))
           ),
-          React.createElement("input", {
-            className: "input",
-            style: { marginTop: 6 },
-            placeholder: "新增标签，Enter / 逗号确认",
-            value: tagInputs[editingGroup.key] || "",
-            onChange: e => {
-              const v = e.target.value;
-              if (v.endsWith(",") || v.endsWith("，")) {
-                const tag = v.slice(0, -1).trim();
-                if (tag && !editingGroup.tags.includes(tag)) {
-                  setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, tags: [...g.tags, tag] } : g));
+          React.createElement("div", { className: "tgm-tag-add-row", style: { marginTop: 8 } },
+            React.createElement("input", {
+              className: "input",
+              style: { flex: 1, marginBottom: 0 },
+              placeholder: "新增标签（回车 / 逗号）",
+              value: tagInputs[group.key] || "",
+              onChange: e => {
+                const v = e.target.value;
+                if (v.endsWith(",") || v.endsWith("，")) {
+                  const tag = v.slice(0, -1).trim();
+                  if (tag && !group.tags.includes(tag)) {
+                    setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, tags: [...g.tags, tag] } : g));
+                  }
+                  setTagInputs(p => ({ ...p, [group.key]: "" }));
+                } else {
+                  setTagInputs(p => ({ ...p, [group.key]: v }));
                 }
-                setTagInputs(p => ({ ...p, [editingGroup.key]: "" }));
-              } else {
-                setTagInputs(p => ({ ...p, [editingGroup.key]: v }));
-              }
-            },
-            onKeyDown: e => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                const tag = (tagInputs[editingGroup.key] || "").trim();
-                if (tag && !editingGroup.tags.includes(tag)) {
-                  setPresetGroups(pg => pg.map(g => g.key === editingGroup.key ? { ...g, tags: [...g.tags, tag] } : g));
-                }
-                setTagInputs(p => ({ ...p, [editingGroup.key]: "" }));
-              }
-            }
-          }),
-          React.createElement("button", {
-            className: "tgm-danger-btn",
-            style: { width: "100%", marginTop: 12 },
-            onClick: () => { setPresetGroups(pg => pg.filter(g => g.key !== editingGroup.key)); setEditingKey(null); }
-          }, "删除此标签组")
+              },
+              onKeyDown: e => { if (e.key === "Enter") { e.preventDefault(); addTag(group.key); } }
+            }),
+            React.createElement("button", { className: "btn small", style: { flexShrink: 0 }, onClick: () => addTag(group.key) }, "+")
+          ),
         )
-    : React.createElement("div", null,
-        presetGroups.map(group => React.createElement("div", {
-          key: group.key,
-          className: "tgm-swipe-wrapper"
-        },
-          React.createElement("button", {
-            className: "tgm-swipe-delete",
-            onClick: e => {
-              e.stopPropagation();
-              setPresetGroups(pg => pg.filter(g => g.key !== group.key));
-              setSwipeKey(null);
-            }
-          }, "删除"),
-          React.createElement("div", {
-            className: "tgm-group-row",
-            style: {
-              transform: swipeKey === group.key ? "translateX(-68px)" : "translateX(0)",
-              transition: "transform 0.2s ease",
-              marginBottom: 0
-            },
-            onClick: () => {
-              if (swipeKey === group.key) { setSwipeKey(null); return; }
-              setEditingKey(group.key);
-              setHexInputs(p => ({ ...p, [group.key]: group.color }));
-            },
-            onTouchStart: e => { touchRef.current = { x: e.touches[0].clientX, key: group.key }; },
-            onTouchMove: e => {
-              if (touchRef.current.key !== group.key) return;
-              const dx = e.touches[0].clientX - touchRef.current.x;
-              if (dx < -40) setSwipeKey(group.key);
-              else if (dx > 20) setSwipeKey(null);
-            }
-          },
-            React.createElement("div", { className: "tgm-color-dot", style: { background: group.color } }),
-            React.createElement("span", { className: "tgm-group-label" }, group.label),
-            React.createElement("span", { className: "tgm-group-count" }, group.tags.length + " 个"),
-            React.createElement("span", { className: "tgm-edit-arrow" }, "▸")
-          )
-        )),
-        React.createElement("button", {
-          className: "tgm-add-group-btn",
-          onClick: () => {
-            const key = "group_" + Date.now();
-            setPresetGroups(pg => [...pg, { key, label: "新标签组", color: "#a08cc4", tags: [] }]);
-            setEditingKey(key);
-            setHexInputs(p => ({ ...p, [key]: "#a08cc4" }));
-          }
-        }, "+ 新增标签组")
       );
+    }),
+    React.createElement("div", { className: "tgm-swipe-hint" }, "← 左滑可删除"),
+    React.createElement("button", {
+      className: "tgm-add-group-btn",
+      onClick: () => {
+        const key = "group_" + Date.now();
+        setPresetGroups(pg => [...pg, { key, label: "新标签组", color: "#a08cc4", tags: [] }]);
+        setOpenKey(key);
+      }
+    }, "+ 新增标签组")
+  );
   return /*#__PURE__*/React.createElement("div", {
     className: "overlay",
     onClick: onClose
@@ -1621,10 +1651,10 @@ function SettingsModal({
   }, React.createElement("div", {
     className: "modal-title",
     style: page === "tags" ? { cursor: "pointer", display: "flex", alignItems: "center", gap: 8 } : {},
-    onClick: page === "tags" ? () => { editingGroup ? setEditingKey(null) : setPage("settings"); } : undefined
+    onClick: page === "tags" ? () => setPage("settings") : undefined
   }, page === "tags"
     ? [React.createElement("span", { key: "a", style: { color: "var(--accent)", fontWeight: 400, letterSpacing: 0 } }, "←"),
-       React.createElement("span", { key: "t" }, " " + (editingGroup ? editingGroup.label : "TAGS 標籤組"))]
+       React.createElement("span", { key: "t" }, " TAGS 標簺組")]
     : "⚙ SETTINGS 設定"),
   page !== "tags" && ["claude", "user"].map(side => {
     const icon = s[`${side}Icon`] || "";
@@ -1750,6 +1780,7 @@ function SettingsModal({
   ), page === "tags" && tagsPageContent, page !== "tags" && /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       localStorage.removeItem("crosstalk_api_url");
+      history.replaceState(null, "", window.location.pathname + window.location.search);
       window.location.reload();
     },
     style: {
@@ -1769,10 +1800,7 @@ function SettingsModal({
       width: "100%"
     },
     onClick: () => {
-      if (page === "tags" && editingGroup) {
-        onSave();
-        setEditingKey(null);
-      } else if (page === "tags") {
+      if (page === "tags") {
         onSave();
         setPage("settings");
       } else {
@@ -1798,8 +1826,29 @@ function SettingsModal({
       React.createElement("button", {
         className: "submit-btn",
         style: { flex: 1, fontSize: 11, padding: "8px 0" },
-        onClick: () => { setPresetGroups(DEFAULT_PRESET_GROUPS); setEditingKey(null); setShowResetConfirm(false); }
+        onClick: () => { setPresetGroups(DEFAULT_PRESET_GROUPS); setOpenKey(null); setShowResetConfirm(false); }
       }, "確認恢復")
+    )
+  ))
+  , deleteConfirmKey && React.createElement("div", {
+    style: { position: "fixed", inset: 0, background: "rgba(90,83,76,.5)", zIndex: 400, display: "flex", alignItems: "center", justifyContent: "center" },
+    onClick: () => setDeleteConfirmKey(null)
+  }, React.createElement("div", {
+    style: { background: "var(--card)", border: "2px solid var(--border)", padding: "20px 24px", maxWidth: 260, width: "85%", boxShadow: "4px 4px 0 var(--shadow)" },
+    onClick: e => e.stopPropagation()
+  },
+    React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: "var(--text)", marginBottom: 6, letterSpacing: 1 } }, "删除标签组？"),
+    React.createElement("div", { style: { fontSize: 10, color: "var(--muted)", marginBottom: 18, lineHeight: 1.6 } }, "此操作不可撤回"),
+    React.createElement("div", { style: { display: "flex", gap: 8 } },
+      React.createElement("button", { className: "tgm-reset-btn", style: { flex: 1, padding: "8px 0" }, onClick: () => setDeleteConfirmKey(null) }, "取消"),
+      React.createElement("button", {
+        className: "tgm-danger-btn",
+        style: { flex: 1, padding: "8px 0" },
+        onClick: () => {
+          setPresetGroups(pg => pg.filter(g => g.key !== deleteConfirmKey));
+          setOpenKey(null); setDeleteConfirmKey(null); setSwipeKey(null);
+        }
+      }, "确认删除")
     )
   )));
 }
@@ -1901,6 +1950,7 @@ function App() {
     }
   }, [pairs, pendingIdx]);
   useEffect(() => { rebuildTagLookups(presetGroups); }, [presetGroups]);
+  useEffect(() => { updateAppleTouchIcon(settings.headphoneType); }, [settings.headphoneType]);
   const favMounted = React.useRef(false);
   useEffect(() => {
     if (!favMounted.current) { favMounted.current = true; return; }
@@ -2087,7 +2137,7 @@ function App() {
       color: "var(--accent)",
       fontSize: 11
     }
-  }, "Loading Crosstalk", /*#__PURE__*/React.createElement("span", {
+  }, "Loading IN~PHASE", /*#__PURE__*/React.createElement("span", {
     className: "dots"
   })));
   if (err) return /*#__PURE__*/React.createElement("div", {
