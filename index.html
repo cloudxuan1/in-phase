@@ -1804,6 +1804,59 @@ function SettingsModal({
   )));
 }
 
+// ─── PWA Icon Generator ─────────────────────────────────────────────────
+function makePWAIcon(type) {
+  const a = "#f4845f", b = "#faf0e6", c = "#8a8078", d = "#d4a574";
+  const shapes = {
+    wired: [
+      {x:2,y:12,w:10,h:14,f:a},{x:4,y:14,w:6,h:10,f:b},{x:5,y:16,w:4,h:6,f:a,o:".3"},
+      {x:36,y:12,w:10,h:14,f:a},{x:38,y:14,w:6,h:10,f:b},{x:39,y:16,w:4,h:6,f:a,o:".3"},
+      {x:6,y:26,w:2,h:6,f:c},{x:40,y:26,w:2,h:6,f:c},
+      {x:8,y:32,w:2,h:2,f:c},{x:38,y:32,w:2,h:2,f:c},
+      {x:10,y:34,w:28,h:2,f:c},{x:22,y:36,w:4,h:4,f:c}
+    ],
+    wireless: [
+      {x:6,y:14,w:8,h:10,f:a},{x:8,y:16,w:4,h:6,f:b},
+      {x:9,y:24,w:2,h:6,f:a},{x:9,y:30,w:2,h:2,f:c},
+      {x:34,y:14,w:8,h:10,f:a},{x:36,y:16,w:4,h:6,f:b},
+      {x:37,y:24,w:2,h:6,f:a},{x:37,y:30,w:2,h:2,f:c}
+    ],
+    overear: [
+      {x:12,y:4,w:24,h:2,f:c},{x:10,y:6,w:2,h:2,f:c},{x:36,y:6,w:2,h:2,f:c},
+      {x:8,y:8,w:2,h:10,f:c},{x:38,y:8,w:2,h:10,f:c},
+      {x:1,y:16,w:12,h:18,f:a},{x:3,y:18,w:8,h:14,f:b},{x:4,y:20,w:6,h:10,f:d,o:".2"},
+      {x:35,y:16,w:12,h:18,f:a},{x:37,y:18,w:8,h:14,f:b},{x:38,y:20,w:6,h:10,f:d,o:".2"}
+    ]
+  };
+  const rects = (shapes[type] || shapes.wired)
+    .map(r => `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="${r.f}"${r.o ? ` opacity="${r.o}"` : ""}/>`)
+    .join("");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" shape-rendering="crispEdges">${rects}</svg>`;
+  const img = new Image();
+  const blob = new Blob([svg], { type: "image/svg+xml" });
+  const url = URL.createObjectURL(blob);
+  img.onload = () => {
+    const size = 512, pad = 96;
+    const canvas = document.createElement("canvas");
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = b;
+    ctx.fillRect(0, 0, size, size);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(img, pad, pad, size - pad * 2, size - pad * 2);
+    URL.revokeObjectURL(url);
+    const dataUrl = canvas.toDataURL("image/png");
+    let link = document.querySelector("link[rel='apple-touch-icon']");
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "apple-touch-icon";
+      document.head.appendChild(link);
+    }
+    link.href = dataUrl;
+  };
+  img.src = url;
+}
+
 function App() {
   const [ready, setReady] = useState(!!getApiUrl());
   if (!ready) return /*#__PURE__*/React.createElement(SetupScreen, {
@@ -1901,6 +1954,7 @@ function App() {
     }
   }, [pairs, pendingIdx]);
   useEffect(() => { rebuildTagLookups(presetGroups); }, [presetGroups]);
+  useEffect(() => { makePWAIcon(settings.headphoneType); }, [settings.headphoneType]);
   const favMounted = React.useRef(false);
   useEffect(() => {
     if (!favMounted.current) { favMounted.current = true; return; }
