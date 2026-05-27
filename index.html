@@ -270,7 +270,8 @@
   .tgm-add-group-btn { width: 100%; padding: 8px; border: 1px dashed var(--shadow); background: transparent; color: var(--muted); cursor: pointer; font-size: 11px; font-family: inherit; text-align: center; margin-top: 4px; }
   .tgm-add-group-btn:hover { border-color: var(--accent); color: var(--accent); }
   .tgm-swipe-wrapper { position: relative; overflow: hidden; margin-bottom: 4px; }
-  .tgm-swipe-delete { position: absolute; right: 0; top: 0; bottom: 0; width: 68px; background: var(--accent); color: #fff; border: none; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .tgm-swipe-delete { position: absolute; right: 0; top: 0; bottom: 0; width: 68px; background: var(--accent); color: #fff; border: none; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; transition: font-size 0.1s; }
+  .tgm-swipe-delete.confirming { font-size: 10px; background: #c0392b; }
   .tgm-back-btn { background: none; border: none; cursor: pointer; font-size: 11px; color: var(--accent); font-family: inherit; padding: 0; flex-shrink: 0; }
   .tgm-edit-panel-title { font-size: 11px; color: var(--text); font-weight: 600; flex: 1; text-align: center; }
   .tgm-edit-panel { padding: 10px 0 4px; }
@@ -1449,6 +1450,7 @@ function SettingsModal({
   const [page, setPage] = useState("settings");
   const [openKey, setOpenKey] = useState(null);
   const [deleteConfirmKey, setDeleteConfirmKey] = useState(null);
+  const [swipeConfirmKey, setSwipeConfirmKey] = useState(null);
   const [tagInputs, setTagInputs] = useState({});
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [swipeKey, setSwipeKey] = useState(null);
@@ -1490,14 +1492,18 @@ function SettingsModal({
       const isConfirm = deleteConfirmKey === group.key;
       return React.createElement("div", { key: group.key, className: "tgm-swipe-wrapper" },
         React.createElement("button", {
-          className: "tgm-swipe-delete",
+          className: `tgm-swipe-delete${swipeConfirmKey === group.key ? " confirming" : ""}`,
           onClick: e => {
             e.stopPropagation();
-            setOpenKey(group.key);
-            setDeleteConfirmKey(group.key);
-            setSwipeKey(null);
+            if (swipeConfirmKey === group.key) {
+              setPresetGroups(pg => pg.filter(g => g.key !== group.key));
+              setSwipeKey(null);
+              setSwipeConfirmKey(null);
+            } else {
+              setSwipeConfirmKey(group.key);
+            }
           }
-        }, "删除"),
+        }, swipeConfirmKey === group.key ? "确认删除" : "删除"),
         React.createElement("div", {
           className: "tgm-group-row",
           style: { transform: swipeKey === group.key ? "translateX(-68px)" : "translateX(0)", transition: "transform 0.2s ease", marginBottom: 0 },
@@ -1514,7 +1520,7 @@ function SettingsModal({
             if (isOpen) return;
             const dx = e.touches[0].clientX - touchRef.current.x;
             if (dx < -40) setSwipeKey(group.key);
-            else if (dx > 20) setSwipeKey(null);
+            else if (dx > 20) { setSwipeKey(null); setSwipeConfirmKey(null); }
           }
         },
           React.createElement("div", { className: "tgm-color-dot", style: { background: group.color } }),
