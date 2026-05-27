@@ -1505,11 +1505,13 @@ function SettingsModal({
             if (swipeKey === group.key) { setSwipeKey(null); return; }
             const next = isOpen ? null : group.key;
             setOpenKey(next);
+            setSwipeKey(null);
             if (!isOpen) setDeleteConfirmKey(null);
           },
           onTouchStart: e => { touchRef.current = { x: e.touches[0].clientX, key: group.key }; },
           onTouchMove: e => {
             if (touchRef.current.key !== group.key) return;
+            if (isOpen) return;
             const dx = e.touches[0].clientX - touchRef.current.x;
             if (dx < -40) setSwipeKey(group.key);
             else if (dx > 20) setSwipeKey(null);
