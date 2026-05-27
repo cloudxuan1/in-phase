@@ -1610,8 +1610,8 @@ function SettingsModal({
     onClick: page === "tags" ? () => setPage("settings") : undefined
   }, page === "tags"
     ? [React.createElement("span", { key: "a", style: { color: "var(--accent)", fontWeight: 400, letterSpacing: 0 } }, "←"),
-    ? [React.createElement("span", { key: "a", style: { color: "var(--accent)", fontWeight: 400, letterSpacing: 0 } }, "←"),
-       React.createElement("span", { key: "t" }, " TAGS 標籤組")]
+       React.createElement("span", { key: "t" }, " TAGS 標簺組")]
+    : "⚙ SETTINGS 設定"),
   page !== "tags" && ["claude", "user"].map(side => {
     const icon = s[`${side}Icon`] || "";
     return /*#__PURE__*/React.createElement("div", {
@@ -1755,11 +1755,9 @@ function SettingsModal({
       width: "100%"
     },
     onClick: () => {
-    onClick: () => {
       if (page === "tags") {
         onSave();
         setPage("settings");
-      } else {
       } else {
         onSave();
         onClose();
