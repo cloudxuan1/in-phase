@@ -169,6 +169,12 @@
   .submit-btn:disabled { opacity: .5; cursor: not-allowed; }
   .submit-btn:not(:disabled):hover { transform: translateY(-1px); }
 
+  /* Blind placeholder card */
+  .blind-card { padding: 16px 14px; background: var(--card); border: 2px dashed var(--tan); margin-bottom: 12px; text-align: center; }
+  .blind-lock { font-size: 22px; margin-bottom: 8px; }
+  .blind-theme { font-size: 12px; color: var(--accent); font-style: italic; margin-bottom: 12px; line-height: 1.4; }
+  .blind-status { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text); padding: 4px 2px; line-height: 1.4; }
+  .blind-wait { font-size: 10px; color: var(--muted); margin-top: 10px; letter-spacing: 1px; }
   /* History card */
   .hist-card { padding: 12px; background: var(--card); border: 2px solid var(--light); margin-bottom: 8px; cursor: pointer; transition: all .2s; }
   .hist-card:hover { border-color: var(--accent); box-shadow: 3px 3px 0 #fce4d6; }
@@ -519,6 +525,26 @@ function getSongTags(song) {
     : Object.entries(t).filter(([, v]) => v && typeof v === 'string').map(([, v]) => v);
   return raw.map(normalizeTag).filter(Boolean);
 }
+// ─── Blind Exchange helpers ───────────────────────────────────────────────
+function isBlindPair(pair) {
+  return pair?.claude_song?.blind === true || pair?.user_song?.blind === true;
+}
+function hasSubmitted(song) {
+  // 真实 song 必有 title;纯占位 { blind: true } 没有 title
+  return !!(song && song.title);
+}
+function isRevealed(pair) {
+  return hasSubmitted(pair?.claude_song) && hasSubmitted(pair?.user_song);
+}
+// 是否允许读取该 pair 的真实 song 内容(title/artist/note/tags/link/cover)
+function canRevealSong(pair) {
+  return !isBlindPair(pair) || isRevealed(pair);
+}
+// 全局读取统一入口:未揭晓 blind pair 不暴露任何 song,只剩 theme + 提交状态
+function visibleSongs(pair) {
+  if (!canRevealSong(pair)) return [];
+  return [pair?.claude_song, pair?.user_song].filter(Boolean);
+}
 function getTagCategory(tag) {
   for (const [cat, tags] of Object.entries(TAGS)) {
     if (tags.includes(tag)) return cat;
@@ -529,7 +555,7 @@ const DEFAULT_QUICK_TAGS = ["深夜 Late Night", "晴 Sunny", "午后 Afternoon"
 function computeQuickTags(pairs, limit = 8) {
   const freq = {};
   (pairs || []).forEach(p => {
-    [...getSongTags(p.claude_song), ...getSongTags(p.user_song)].forEach(tag => {
+    visibleSongs(p).flatMap(getSongTags).forEach(tag => {
       freq[tag] = (freq[tag] || 0) + 1;
     });
   });
@@ -544,7 +570,7 @@ function computeQuickTags(pairs, limit = 8) {
 function computeAllCustomTags(pairs) {
   const freq = {};
   (pairs || []).forEach(p => {
-    [...getSongTags(p.claude_song), ...getSongTags(p.user_song)]
+    visibleSongs(p).flatMap(getSongTags)
       .filter(tag => getTagCategory(tag) === 'custom')
       .forEach(tag => { freq[tag] = (freq[tag] || 0) + 1; });
   });
@@ -1391,11 +1417,63 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs, favTags, 
   );
 }
 // ─── History Card ───────────────────────────────────────────────────────
+function BlindPlaceholder({
+  pair: p,
+  settings: s
+}) {
+  const cDone = hasSubmitted(p.claude_song);
+  const uDone = hasSubmitted(p.user_song);
+  const statusRow = (icon, name, done) => /*#__PURE__*/React.createElement("div", {
+    className: "blind-status"
+  }, /*#__PURE__*/React.createElement("span", null, icon, " ", name), /*#__PURE__*/React.createElement("span", {
+    style: { color: done ? "var(--place)" : "var(--time)" }
+  }, done ? "✓ 已提交" : "⏳ 未提交"));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "blind-card"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "blind-lock"
+  }, "🔒"), /*#__PURE__*/React.createElement("div", {
+    className: "blind-theme"
+  }, "\"", p.theme?.split("/")[0].trim(), "\""), statusRow(s.claudeIcon, s.claudeName, cDone), statusRow(s.userIcon, s.userName, uDone), /*#__PURE__*/React.createElement("div", {
+    className: "blind-wait"
+  }, "等待揭晓…"));
+}
 function HistCard({
   pair: p,
   settings: s,
   onClick
 }) {
+  if (isBlindPair(p) && !isRevealed(p)) {
+    const cDone = hasSubmitted(p.claude_song);
+    const uDone = hasSubmitted(p.user_song);
+    const dot = done => /*#__PURE__*/React.createElement("span", {
+      style: { fontSize: 10, color: done ? "var(--place)" : "var(--time)" }
+    }, done ? "✓" : "⏳");
+    return /*#__PURE__*/React.createElement("div", {
+      className: "hist-card",
+      onClick: onClick
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "hist-meta"
+    }, /*#__PURE__*/React.createElement("span", {
+      style: { color: "var(--tan)" }
+    }, "🔒 Blind"), " · ", /*#__PURE__*/React.createElement("span", {
+      style: { color: "var(--muted)" }
+    }, "等待揭晓")), /*#__PURE__*/React.createElement("div", {
+      className: "hist-theme"
+    }, "\"", p.theme?.split("/")[0].trim(), "\""), /*#__PURE__*/React.createElement("div", {
+      className: "hist-songs"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "hist-side"
+    }, /*#__PURE__*/React.createElement("span", {
+      style: { fontSize: 14 }
+    }, s.claudeIcon), dot(cDone)), /*#__PURE__*/React.createElement("span", {
+      style: { fontSize: 14, color: "var(--shadow)" }
+    }, "⇄"), /*#__PURE__*/React.createElement("div", {
+      className: "hist-side right"
+    }, dot(uDone), /*#__PURE__*/React.createElement("span", {
+      style: { fontSize: 14 }
+    }, s.userIcon))));
+  }
   return /*#__PURE__*/React.createElement("div", {
     className: "hist-card",
     onClick: onClick
@@ -1884,6 +1962,7 @@ function App() {
   const [presetGroups, setPresetGroups] = useState(DEFAULT_PRESET_GROUPS);
   const [exMode, setExMode] = useState("claude");
   const [pendingIdx, setPendingIdx] = useState(0);
+  const [blindIdx, setBlindIdx] = useState(0);
   const [exTheme, setExTheme] = useState("");
   const [exSong, setExSong] = useState("");
   const [exArtist, setExArtist] = useState("");
@@ -1979,11 +2058,12 @@ function App() {
     }
   };
   const filtered = pairs.filter(p => {
-    const songTags = [...getSongTags(p.claude_song), ...getSongTags(p.user_song)];
+    const vis = visibleSongs(p);
+    const songTags = vis.flatMap(getSongTags);
     const commentText = (comments[p.id] || []).map(c => c.text).join(" ");
     const haystack = [
-      p.theme, p.claude_song?.title, p.claude_song?.artist, p.claude_song?.note,
-      p.user_song?.title, p.user_song?.artist, p.user_song?.note,
+      p.theme,
+      ...vis.flatMap(s => [s?.title, s?.artist, s?.note]),
       commentText, ...songTags
     ].filter(Boolean).join(" ").toLowerCase();
     const searchMatch = !q.trim() || haystack.includes(q.trim().toLowerCase());
@@ -2121,6 +2201,39 @@ function App() {
     clearForm();
     setSub(false);
   }
+  async function createBlindTheme() {
+    if (!exTheme.trim()) return;
+    setSub(true);
+    const r = await api("/pairs", "POST", {
+      theme: exTheme.trim(),
+      asked_by: "user",
+      claude_song: { blind: true },
+      user_song: { blind: true }
+    });
+    if (r) setPairs(p => [r, ...p]);
+    clearForm();
+    setSub(false);
+  }
+  async function respondBlind(pid) {
+    if (!exSong.trim() || !exArtist.trim()) return;
+    setSub(true);
+    const song = {
+      blind: true,
+      title: exSong.trim(),
+      artist: exArtist.trim(),
+      album: exAlbum.trim(),
+      cover: exCover,
+      link: exLink,
+      note: exNote.trim(),
+      tags: { list: exTagInput.trim() && !exTagList.includes(exTagInput.trim()) ? [...exTagList, exTagInput.trim()] : exTagList }
+    };
+    const r = await api(`/pairs/${pid}`, "PATCH", {
+      user_song: song
+    });
+    if (r) setPairs(p => p.map(x => x.id === pid ? r : x));
+    clearForm();
+    setSub(false);
+  }
   const has = pairs.some(p => p.claude_song || p.user_song);
   const pendingQs = pairs.filter(p => p.asked_by === "claude" && !p.user_song).slice().sort((a, b) => a.id - b.id);
   const pending = pendingQs[pendingIdx] || pendingQs[0];
@@ -2130,6 +2243,10 @@ function App() {
     const idx = pendingQs.findIndex(p => p.id === id);
     if (idx >= 0) setPendingIdx(idx);
   };
+  const blindOpen = pairs.filter(p => isBlindPair(p) && !isRevealed(p)).slice().sort((a, b) => a.id - b.id);
+  const blindSel = blindOpen[blindIdx] || blindOpen[0];
+  const blindCount = blindOpen.length;
+  const blindPos = blindSel ? blindOpen.findIndex(p => p.id === blindSel.id) + 1 : 0;
   if (loading) return /*#__PURE__*/React.createElement("div", {
     className: "loading"
   }, /*#__PURE__*/React.createElement("span", {
@@ -2343,7 +2460,10 @@ function App() {
   }, "♡", /*#__PURE__*/React.createElement("br", null), "還沒有收藏"), favFiltered.map(p => /*#__PURE__*/React.createElement("div", {
     key: `c-${p.id}`,
     ref: el => refs.current[`c-${p.id}`] = el
-  }, /*#__PURE__*/React.createElement(SongCard, {
+  }, isBlindPair(p) && !isRevealed(p) ? /*#__PURE__*/React.createElement(BlindPlaceholder, {
+    pair: p,
+    settings: settings
+  }) : /*#__PURE__*/React.createElement(SongCard, {
     song: p.claude_song,
     pair: p,
     expanded: exp === `c-${p.id}`,
@@ -2385,7 +2505,10 @@ function App() {
   }, "♡", /*#__PURE__*/React.createElement("br", null), "還沒有收藏", /*#__PURE__*/React.createElement("br", null), "點卡片上的 ♡ 來收藏"), favFiltered.map(p => /*#__PURE__*/React.createElement("div", {
     key: `u-${p.id}`,
     ref: el => refs.current[`u-${p.id}`] = el
-  }, /*#__PURE__*/React.createElement(SongCard, {
+  }, isBlindPair(p) && !isRevealed(p) ? /*#__PURE__*/React.createElement(BlindPlaceholder, {
+    pair: p,
+    settings: settings
+  }) : /*#__PURE__*/React.createElement(SongCard, {
     song: p.user_song,
     pair: p,
     expanded: exp === `u-${p.id}`,
@@ -2433,7 +2556,10 @@ function App() {
   }, "Reply", settings.claudeIcon), /*#__PURE__*/React.createElement("button", {
     className: `btn ${exMode === "user" ? "active" : ""}`,
     onClick: () => setExMode("user")
-  }, settings.userIcon, "Ask")), exMode === "user" && /*#__PURE__*/React.createElement("div", {
+  }, settings.userIcon, "Ask"), /*#__PURE__*/React.createElement("button", {
+    className: `btn ${exMode === "blind" ? "active" : ""}`,
+    onClick: () => setExMode("blind")
+  }, "🔒 Blind")), exMode === "user" && /*#__PURE__*/React.createElement("div", {
     className: "exchange-card"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2708,7 +2834,99 @@ function App() {
       fontSize: 12,
       lineHeight: 1.8
     }
-  }, "\u76EE\u524D\u6C92\u6709\u5F85\u56DE\u61C9\u7684\u554F\u984C", /*#__PURE__*/React.createElement("br", null), "\u544A\u8A34 ", settings.claudeName, "\u300C\u8A72\u4F60\u51FA\u984C\u4E86\u300D", /*#__PURE__*/React.createElement("br", null), "\u7136\u5F8C\u9EDE \u21BB \u5237\u65B0")), pairs.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, "\u76EE\u524D\u6C92\u6709\u5F85\u56DE\u61C9\u7684\u554F\u984C", /*#__PURE__*/React.createElement("br", null), "\u544A\u8A34 ", settings.claudeName, "\u300C\u8A72\u4F60\u51FA\u984C\u4E86\u300D", /*#__PURE__*/React.createElement("br", null), "\u7136\u5F8C\u9EDE \u21BB \u5237\u65B0")), exMode === "blind" && /*#__PURE__*/React.createElement("div", {
+    className: "exchange-card"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: { fontSize: 12, color: "var(--muted)", marginBottom: 8 }
+  }, "\uD83D\uDD12 \u521B\u5EFA\u76F2\u9009\u4E3B\u9898 Create Blind Theme"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "\u4E3B\u984C Theme",
+    value: exTheme,
+    onChange: e => setExTheme(e.target.value)
+  }), /*#__PURE__*/React.createElement("button", {
+    className: "submit-btn",
+    disabled: !exTheme.trim() || sub,
+    onClick: createBlindTheme
+  }, sub ? "\u9001\u51FA\u4E2D..." : "\u521B\u5EFA\u76F2\u9009 Create \u2192"), /*#__PURE__*/React.createElement("div", {
+    style: { borderTop: "1px dashed var(--light)", margin: "22px 0 14px", paddingTop: 16, fontSize: 12, color: "var(--muted)" }
+  }, "\u56DE\u61C9\u76F2\u9009 Respond Blind", blindCount > 0 ? ` \u00B7 ${blindPos} / ${blindCount}` : ""), blindCount === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: { textAlign: "center", padding: 16, color: "var(--muted)", fontSize: 12, lineHeight: 1.8 }
+  }, "\u76EE\u524D\u6C92\u6709\u672A\u63ED\u66C9\u7684\u76F2\u9009", /*#__PURE__*/React.createElement("br", null), "\u5728\u4E0A\u65B9\u5275\u5EFA\u4E00\u500B\u76F2\u9009\u4E3B\u984C") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", alignItems: "center", padding: "10px 0 14px", borderBottom: "1px dashed var(--light)", marginBottom: 14 }
+  }, /*#__PURE__*/React.createElement("button", {
+    disabled: blindCount <= 1,
+    onClick: () => setBlindIdx(i => blindCount ? (i - 1 + blindCount) % blindCount : 0),
+    style: { background: "none", border: "none", cursor: blindCount <= 1 ? "default" : "pointer", fontSize: 22, color: "var(--muted)", padding: "0 8px", lineHeight: 1, opacity: blindCount <= 1 ? .25 : .6, fontFamily: "inherit", flexShrink: 0 }
+  }, "\u2039"), /*#__PURE__*/React.createElement("div", {
+    style: { flex: 1, textAlign: "center", fontSize: 14, fontWeight: 700, color: "var(--accent)", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", padding: "0 4px" }
+  }, "#", blindSel.id, "\u00A0\"", blindSel.theme, "\""), /*#__PURE__*/React.createElement("button", {
+    disabled: blindCount <= 1,
+    onClick: () => setBlindIdx(i => blindCount ? (i + 1) % blindCount : 0),
+    style: { background: "none", border: "none", cursor: blindCount <= 1 ? "default" : "pointer", fontSize: 22, color: "var(--muted)", padding: "0 8px", lineHeight: 1, opacity: blindCount <= 1 ? .25 : .6, fontFamily: "inherit", flexShrink: 0 }
+  }, "\u203A")), /*#__PURE__*/React.createElement("div", {
+    style: { fontSize: 11, marginBottom: 14 }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", justifyContent: "space-between", padding: "3px 0" }
+  }, /*#__PURE__*/React.createElement("span", null, settings.claudeIcon, " ", settings.claudeName), /*#__PURE__*/React.createElement("span", {
+    style: { color: hasSubmitted(blindSel.claude_song) ? "var(--place)" : "var(--time)" }
+  }, hasSubmitted(blindSel.claude_song) ? "\u2713 \u5DF2\u63D0\u4EA4" : "\u23F3 \u672A\u63D0\u4EA4")), /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", justifyContent: "space-between", padding: "3px 0" }
+  }, /*#__PURE__*/React.createElement("span", null, settings.userIcon, " ", settings.userName), /*#__PURE__*/React.createElement("span", {
+    style: { color: hasSubmitted(blindSel.user_song) ? "var(--place)" : "var(--time)" }
+  }, hasSubmitted(blindSel.user_song) ? "\u2713 \u5DF2\u63D0\u4EA4" : "\u23F3 \u672A\u63D0\u4EA4"))), !hasSubmitted(blindSel.user_song) ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", gap: 8 }
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    style: { flex: 1 },
+    placeholder: "\u6B4C\u540D",
+    value: exSong,
+    onChange: e => setExSong(e.target.value)
+  }), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    style: { flex: 1 },
+    placeholder: "\u85DD\u4EBA",
+    value: exArtist,
+    onChange: e => setExArtist(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", gap: 8, marginBottom: 8 }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn small",
+    onClick: searchMusic,
+    disabled: searching,
+    style: { fontSize: 10, padding: "6px 12px" }
+  }, searching ? "\u641C\u7D22\u4E2D..." : "\uD83D\uDD0D \u641C\u7D22\u5C01\u9762 Search"), exCover && /*#__PURE__*/React.createElement("img", {
+    src: exCover,
+    style: { width: 32, height: 32, border: "1px solid var(--light)", objectFit: "cover" }
+  })), searchResults.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: { border: "2px solid var(--border)", background: "var(--card)", marginBottom: 8, maxHeight: 200, overflow: "auto" }
+  }, searchResults.map((r, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    onClick: () => pickResult(r),
+    style: { display: "flex", gap: 8, padding: 8, cursor: "pointer", borderBottom: "1px solid var(--light)", alignItems: "center" }
+  }, r.cover && /*#__PURE__*/React.createElement("img", {
+    src: r.cover,
+    style: { width: 36, height: 36, objectFit: "cover" }
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: { fontSize: 11, fontWeight: 700 }
+  }, r.title), /*#__PURE__*/React.createElement("div", {
+    style: { fontSize: 9, color: "var(--muted)" }
+  }, r.artist, " \xB7 ", r.album))))), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "\u5C08\u8F2F (optional)",
+    value: exAlbum,
+    onChange: e => setExAlbum(e.target.value)
+  }), /*#__PURE__*/React.createElement("textarea", {
+    className: "input",
+    placeholder: "\u4F60\u548C\u9019\u9996\u6B4C\u7684\u6545\u4E8B...",
+    value: exNote,
+    onChange: e => setExNote(e.target.value)
+  }), tagComposer(), /*#__PURE__*/React.createElement("button", {
+    className: "submit-btn",
+    disabled: !exSong.trim() || !exArtist.trim() || sub,
+    onClick: () => respondBlind(blindSel.id)
+  }, sub ? "\u9001\u51FA\u4E2D..." : "\u63D0\u4EA4\u76F2\u9009 Submit \u2192")) : /*#__PURE__*/React.createElement("div", {
+    style: { textAlign: "center", padding: 16, color: "var(--muted)", fontSize: 12, lineHeight: 1.8 }
+  }, "\u4F60\u5DF2\u63D0\u4EA4 \u2713", /*#__PURE__*/React.createElement("br", null), "\u7B49 ", settings.claudeName, " \u63D0\u4EA4\u5F8C\u81EA\u52D5\u63ED\u66C9", /*#__PURE__*/React.createElement("br", null), "\u9EDE \u21BB \u5237\u65B0"))), pairs.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 24
     }
