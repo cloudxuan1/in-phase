@@ -165,7 +165,7 @@
   .exchange-card { background: var(--card); border: 2px solid var(--border); padding: 20px; margin-bottom: 16px; box-shadow: 3px 3px 0 var(--light); }
   .input { width: 100%; padding: 10px; border: 2px solid var(--border); background: var(--cream); font-family: inherit; font-size: 12px; color: var(--text); outline: none; margin-bottom: 8px; }
   .input:focus { border-color: var(--accent); }
-  textarea.input { resize: vertical; min-height: 60px; }
+  textarea.input { resize: none; min-height: 60px; max-height: 200px; overflow-y: auto; line-height: 1.4; }
   .submit-btn { padding: 10px 24px; border: 2px solid var(--border); background: var(--accent); color: var(--cream); cursor: pointer; font-size: 12px; font-family: inherit; box-shadow: 3px 3px 0 #7a7068; line-height: 1.4; }
   .submit-btn:disabled { opacity: .5; cursor: not-allowed; }
   .submit-btn:not(:disabled):hover { transform: translateY(-1px); }
@@ -2305,6 +2305,14 @@ function App() {
     className: "submit-btn",
     onClick: loadData
   }, "\u91CD\u8A66 Retry")));
+  const noteTextarea = () => /*#__PURE__*/React.createElement("textarea", {
+    className: "input",
+    placeholder: "你和這首歌的故事...",
+    value: exNote,
+    rows: 2,
+    ref: el => { if (el) { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 200) + "px"; } },
+    onChange: e => setExNote(e.target.value)
+  });
   const tagComposer = () => {
     const quickTags = computeQuickTags(pairs);
     const addTag = raw => {
@@ -2686,12 +2694,7 @@ function App() {
     placeholder: "\u5C08\u8F2F Album (optional)",
     value: exAlbum,
     onChange: e => setExAlbum(e.target.value)
-  }), /*#__PURE__*/React.createElement("textarea", {
-    className: "input",
-    placeholder: "\u4F60\u548C\u9019\u9996\u6B4C\u7684\u6545\u4E8B...",
-    value: exNote,
-    onChange: e => setExNote(e.target.value)
-  }), tagComposer(), /*#__PURE__*/React.createElement("button", {
+  }), noteTextarea(), tagComposer(), /*#__PURE__*/React.createElement("button", {
     className: "submit-btn",
     disabled: !exTheme.trim() || !exSong.trim() || !exArtist.trim() || sub,
     onClick: submitExchange
@@ -2838,12 +2841,7 @@ function App() {
     placeholder: "\u5C08\u8F2F (optional)",
     value: exAlbum,
     onChange: e => setExAlbum(e.target.value)
-  }), /*#__PURE__*/React.createElement("textarea", {
-    className: "input",
-    placeholder: "\u4F60\u548C\u9019\u9996\u6B4C\u7684\u6545\u4E8B...",
-    value: exNote,
-    onChange: e => setExNote(e.target.value)
-  }), tagComposer(), /*#__PURE__*/React.createElement("button", {
+  }), noteTextarea(), tagComposer(), /*#__PURE__*/React.createElement("button", {
     className: "submit-btn",
     disabled: !exSong.trim() || !exArtist.trim() || sub,
     onClick: () => respondToQ(pending.id)
@@ -2936,12 +2934,7 @@ function App() {
     placeholder: "\u5C08\u8F2F (optional)",
     value: exAlbum,
     onChange: e => setExAlbum(e.target.value)
-  }), /*#__PURE__*/React.createElement("textarea", {
-    className: "input",
-    placeholder: "\u4F60\u548C\u9019\u9996\u6B4C\u7684\u6545\u4E8B...",
-    value: exNote,
-    onChange: e => setExNote(e.target.value)
-  }), tagComposer(), /*#__PURE__*/React.createElement("button", {
+  }), noteTextarea(), tagComposer(), /*#__PURE__*/React.createElement("button", {
     className: "submit-btn",
     disabled: !exSong.trim() || !exArtist.trim() || sub,
     onClick: () => respondBlind(blindSel.id)
