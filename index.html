@@ -122,9 +122,10 @@
   .comment-bubble { padding: 8px 10px; font-size: 11px; line-height: 1.5; color: var(--text); max-width: 85%; }
   .comment-bubble.claude { background: #fce4d6; border: 1px solid #f4c4a0; }
   .comment-bubble.user { background: #e8ede4; border: 1px solid #c4d4b4; }
-  .comment-input { display: flex; gap: 6px; margin-top: 8px; }
-  .comment-input input { flex: 1; padding: 8px 10px; border: 2px solid var(--border); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; }
+  .comment-input { display: flex; gap: 6px; margin-top: 8px; align-items: flex-end; }
+  .comment-input textarea { flex: 1; padding: 8px 10px; border: 2px solid var(--border); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; resize: none; overflow-y: auto; line-height: 1.4; max-height: 120px; }
   .comment-input button { padding: 6px 12px; border: 2px solid var(--border); background: var(--accent); color: var(--cream); cursor: pointer; font-size: 11px; font-family: inherit; box-shadow: 2px 2px 0 #7a7068; line-height: 1.4; white-space: nowrap; }
+  .comment-input button:disabled { opacity: .5; cursor: default; }
 
   /* Filter */
   .filter-bar { padding: 8px 16px 4px; display: flex; flex-direction: column; gap: 6px; border-bottom: 1px dashed var(--light); }
@@ -170,11 +171,13 @@
   .submit-btn:not(:disabled):hover { transform: translateY(-1px); }
 
   /* Blind placeholder card */
-  .blind-card { padding: 16px 14px; background: var(--card); border: 2px dashed var(--tan); margin-bottom: 12px; text-align: center; }
-  .blind-lock { font-size: 22px; margin-bottom: 8px; }
-  .blind-theme { font-size: 12px; color: var(--accent); font-style: italic; margin-bottom: 12px; line-height: 1.4; }
-  .blind-status { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text); padding: 4px 2px; line-height: 1.4; }
-  .blind-wait { font-size: 10px; color: var(--muted); margin-top: 10px; letter-spacing: 1px; }
+  .blind-card { padding: 18px 14px 16px; background: linear-gradient(135deg, #fce4d622, transparent), var(--card); border: 2px dashed var(--tan); margin-bottom: 12px; text-align: center; }
+  .blind-badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 2px; color: var(--tan); border: 1.5px solid var(--tan); padding: 2px 7px; border-radius: 2px; background: color-mix(in srgb, var(--tan) 12%, transparent); line-height: 1.4; }
+  .blind-card .blind-badge { margin-bottom: 12px; }
+  .blind-theme { font-size: 13px; color: var(--accent); font-style: italic; margin-bottom: 14px; line-height: 1.4; }
+  .blind-status { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text); padding: 5px 2px; line-height: 1.4; }
+  .blind-wait { font-size: 10px; color: var(--muted); margin-top: 12px; letter-spacing: 2px; }
+  .cover .blind-badge { position: absolute; top: 8px; left: 8px; z-index: 2; font-size: 8px; letter-spacing: 1.5px; padding: 1px 5px; background: #faf0e6dd; }
   /* History card */
   .hist-card { padding: 12px; background: var(--card); border: 2px solid var(--light); margin-bottom: 8px; cursor: pointer; transition: all .2s; }
   .hist-card:hover { border-color: var(--accent); box-shadow: 3px 3px 0 #fce4d6; }
@@ -226,7 +229,7 @@
     .columns.hide-claude .divider,
     .columns.hide-user .divider { display: none; }
     /* defensive: keep content from re-expanding column once ratios are set */
-    .comment-input input { min-width: 0; }
+    .comment-input textarea { min-width: 0; }
     .note { overflow-wrap: anywhere; }
     .song-title { overflow-wrap: anywhere; }
     /* explicit column ratios driven by which side is expanded */
@@ -920,6 +923,8 @@ function SongCard({
   onToggleFav
 }) {
   const [draft, setDraft] = useState("");
+  const [posting, setPosting] = useState(false);
+  const taRef = React.useRef(null);
   const [editing, setEditing] = useState(false);
   const [editCover, setEditCover] = useState("");
   const [editLink, setEditLink] = useState("");
@@ -947,9 +952,15 @@ function SongCard({
     }
   }, "\u25CC"), "\u7B49\u5F85\u56DE\u61C9", /*#__PURE__*/React.createElement("br", null), "Awaiting response");
   const post = async () => {
-    if (!draft.trim()) return;
-    await onAddComment(pair.id, "user", draft.trim(), side);
-    setDraft("");
+    if (!draft.trim() || posting) return;
+    setPosting(true);
+    try {
+      await onAddComment(pair.id, "user", draft.trim(), side);
+      setDraft("");
+      if (taRef.current) taRef.current.style.height = "auto";
+    } finally {
+      setPosting(false);
+    }
   };
   const sideComments = comments.filter(c => c.side === side || !c.side);
   const startEdit = e => {
@@ -1002,7 +1013,9 @@ function SongCard({
     className: "album-label"
   }, song.album), /*#__PURE__*/React.createElement("div", {
     className: "pair-pill"
-  }, `#${pair.id}`)), /*#__PURE__*/React.createElement("div", {
+  }, `#${pair.id}`), isBlindPair(pair) && isRevealed(pair) && /*#__PURE__*/React.createElement("div", {
+    className: "blind-badge"
+  }, "BLIND")), /*#__PURE__*/React.createElement("div", {
     className: "song-title-row"
   }, /*#__PURE__*/React.createElement("div", {
     className: "song-title"
@@ -1189,16 +1202,24 @@ function SongCard({
     }
   }, "\u9084\u6C92\u6709\u7559\u8A00"), /*#__PURE__*/React.createElement("div", {
     className: "comment-input"
-  }, /*#__PURE__*/React.createElement("input", {
-    placeholder: "\u7559\u8A00...",
+  }, /*#__PURE__*/React.createElement("textarea", {
+    ref: taRef,
+    rows: 1,
+    placeholder: "\u7559\u8A00\u2026(Shift+\u56DE\u8F66\u9001\u51FA)",
     value: draft,
-    onChange: e => setDraft(e.target.value),
+    disabled: posting,
+    onChange: e => {
+      setDraft(e.target.value);
+      e.target.style.height = "auto";
+      e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+    },
     onKeyDown: e => {
-      if (e.key === "Enter") post();
+      if (e.key === "Enter" && e.shiftKey) { e.preventDefault(); post(); }
     }
   }), /*#__PURE__*/React.createElement("button", {
-    onClick: post
-  }, "\u21B5")))));
+    onClick: post,
+    disabled: posting
+  }, posting ? "\u2026" : "\u21B5")))));
 }
 
 // ─── Tag Filter ──────────────────────────────────────────────────────────────────────
@@ -1431,8 +1452,8 @@ function BlindPlaceholder({
   return /*#__PURE__*/React.createElement("div", {
     className: "blind-card"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "blind-lock"
-  }, "🔒"), /*#__PURE__*/React.createElement("div", {
+    className: "blind-badge"
+  }, "BLIND"), /*#__PURE__*/React.createElement("div", {
     className: "blind-theme"
   }, "\"", p.theme?.split("/")[0].trim(), "\""), statusRow(s.claudeIcon, s.claudeName, cDone), statusRow(s.userIcon, s.userName, uDone), /*#__PURE__*/React.createElement("div", {
     className: "blind-wait"
@@ -1455,8 +1476,8 @@ function HistCard({
     }, /*#__PURE__*/React.createElement("div", {
       className: "hist-meta"
     }, /*#__PURE__*/React.createElement("span", {
-      style: { color: "var(--tan)" }
-    }, "🔒 Blind"), " · ", /*#__PURE__*/React.createElement("span", {
+      className: "blind-badge"
+    }, "BLIND"), " · ", /*#__PURE__*/React.createElement("span", {
       style: { color: "var(--muted)" }
     }, "等待揭晓")), /*#__PURE__*/React.createElement("div", {
       className: "hist-theme"
@@ -2559,7 +2580,7 @@ function App() {
   }, settings.userIcon, "Ask"), /*#__PURE__*/React.createElement("button", {
     className: `btn ${exMode === "blind" ? "active" : ""}`,
     onClick: () => setExMode("blind")
-  }, "🔒 Blind")), exMode === "user" && /*#__PURE__*/React.createElement("div", {
+  }, "Blind")), exMode === "user" && /*#__PURE__*/React.createElement("div", {
     className: "exchange-card"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2838,7 +2859,7 @@ function App() {
     className: "exchange-card"
   }, /*#__PURE__*/React.createElement("div", {
     style: { fontSize: 12, color: "var(--muted)", marginBottom: 8 }
-  }, "\uD83D\uDD12 \u521B\u5EFA\u76F2\u9009\u4E3B\u9898 Create Blind Theme"), /*#__PURE__*/React.createElement("input", {
+  }, "\u521B\u5EFA\u76F2\u9009\u4E3B\u9898 Create Blind Theme"), /*#__PURE__*/React.createElement("input", {
     className: "input",
     placeholder: "\u4E3B\u984C Theme",
     value: exTheme,
