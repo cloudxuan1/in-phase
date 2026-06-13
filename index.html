@@ -119,7 +119,7 @@
   .comment-row.claude { flex-direction: row; }
   .comment-row.user { flex-direction: row-reverse; }
   .comment-avatar { width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 2px solid var(--border); background: var(--cream); }
-  .comment-bubble { padding: 8px 10px; font-size: 11px; line-height: 1.5; color: var(--text); max-width: 85%; }
+  .comment-bubble { padding: 8px 10px; font-size: 11px; line-height: 1.5; color: var(--text); max-width: 85%; white-space: pre-wrap; overflow-wrap: anywhere; }
   .comment-bubble.claude { background: #fce4d6; border: 1px solid #f4c4a0; }
   .comment-bubble.user { background: #e8ede4; border: 1px solid #c4d4b4; }
   .comment-input { display: flex; gap: 6px; margin-top: 8px; align-items: flex-end; }
@@ -2020,7 +2020,6 @@ function App() {
     userName: "You",
     headphoneType: "wired"
   });
-  const [customTags, setCustomTags] = useState([]);
   const [favTags, setFavTags] = useState([]);
   const [favPairs, setFavPairs] = useState([]);
   const [favSort, setFavSort] = useState("default");
@@ -2060,7 +2059,6 @@ function App() {
           userName: s.user_name || "You",
           headphoneType: s.headphone_type || "wired"
         });
-        setCustomTags(s.custom_tags || []);
         const rawFav = Array.isArray(s.fav_tags) ? s.fav_tags : [];
         setFavTags([...new Set(rawFav.filter(t => typeof t === "string" && t.trim() !== ""))]);
         try {
@@ -2188,11 +2186,10 @@ function App() {
       user_icon: settings.userIcon,
       user_name: settings.userName,
       headphone_type: settings.headphoneType,
-      custom_tags: customTags,
       preset_groups: groupsOverride || presetGroups,
       fav_tags: [...new Set(favTags.filter(t => typeof t === "string" && t.trim() !== ""))]
     });
-  }, [settings, customTags, presetGroups, favTags]);
+  }, [settings, presetGroups, favTags]);
   async function searchMusic() {
     if (!exSong.trim() && !exArtist.trim()) return;
     setSearching(true);
