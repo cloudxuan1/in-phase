@@ -186,6 +186,27 @@ Edge Function 路由（`/crosstalk-api`）：
 - Loading 界面：Loading Crosstalk → Loading IN~PHASE
 - PWA apple-touch-icon：Canvas 绘制像素耳机，随 `headphoneType` 动态更新
 
+### ✅ V7 盲选 Blind Exchange（PR#20）
+- 模式：先开题不亮答案，两边各自放牌，双方都提交后自动揭晓，回归普通双列卡片
+- 状态全放 song JSON（`{ blind: true }` 占位），零 schema / 零后端改动，复用 `POST /pairs` + `PATCH /pairs/:id`
+- helper 集中封装：`isBlindPair` / `hasSubmitted`（看有没有 title）/ `isRevealed`（两侧都有 title）/ `canRevealSong` / `visibleSongs`
+- 未揭晓走 `BlindPlaceholder`，Library 两列镜像 + EXCHANGE HISTORY 都不把占位 song 喂给 SongCard
+- **防部分揭晓泄露**：搜索 haystack / quick tags / custom tags 等全局 song 读取统一经 `visibleSongs` 收口——一侧已填真实 song、另一侧还占位时也不外漏
+- 揭晓标识：`BlindIcon`（双牌翻开 SVG），用于揭晓卡片封面角标 / 占位卡主视觉 / HISTORY 锁定态 / Blind 切换按钮
+- Respond Blind 只提交 `user_song`；Claude 的 `claude_song` 由 Claude 外部提交（crosstalk-api / 直接写 Supabase），前端不代填
+- 防偷看 V1 为前端藏（cosmetic）：`GET /pairs` 提交后仍下发真数据，后端不下发为后续选项
+
+### ✅ 输入框与换行体验（PR#20）
+- 评论框 `input` → 自动撑高 `textarea`（120px 封顶滚动）；回车换行、Shift+回车送出；提交加 `posting` 锁 + 按钮 loading 防连点
+- 故事 note 框抽成 `noteTextarea()` 复用，自动撑高（200px 封顶）
+- `.note` / `.comment-bubble` 加 `white-space: pre-wrap`，提交时敲的换行原样显示（旧数据刷新即生效）
+
+### ✅ Settings 标签保存修复 + customTags 清理（PR#20）
+- 点弹窗外背景关闭也会先保存（原来只有 Done 触发 PATCH，改完不点 Done 直接关 = 静默丢失，同 favTags 老病）
+- Done / 关闭前 `flushTags()` 并入输入框里没按回车的残留标签；加标签 `tagInAnyGroup` 跨组查重；空组名失焦/保存回退「未命名标签组」
+- `saveSettings(groupsOverride)` 避免「刚 setState 立刻保存读到旧值」的时序坑
+- 删除遗留前端 `customTags`（纯死代码，自定义标签由 `computeAllCustomTags` 现算）；**DB 列与 Edge Function 未动**
+
 ---
 
 ## 经验教训（调试 / 协作）
@@ -197,31 +218,18 @@ Edge Function 路由（`/crosstalk-api`）：
 - **cherry-pick**：把另一个分支上的单个 commit 搬到当前分支。
 - **color-mix()**：`color-mix(in srgb, var(--accent) 25%, transparent)` 直接生成半透明色，比手写 rgba 更灵活。
 - **hash URL 持久化陷阱**：`localStorage.removeItem` + `reload` 不等于"清除配置"——`getApiUrl()` 先读 hash，hash 不清就白清。
+- **SVG 属性里 `var()` 不生效**：`<rect fill="var(--accent)">` 不吃 CSS 变量，颜色要写进 `style={{ fill: "var(--accent)" }}`（`BlindIcon` 踩过）。
+- **textarea 换行渲染要 `white-space: pre-wrap`**：textarea 里敲的换行确实存进了 DB，但展示元素默认把换行折叠成空格；给展示节点加 `pre-wrap` 才显示。
+- **"即时改 state 但只在某按钮才 PATCH" = 静默丢失**：UI 立刻生效会让人以为存了；凡是弹窗里改的东西，所有关闭路径（含点背景）都要保存，或用 `useEffect` 自动持久化（favTags / presetGroups 同款坑）。
+- **父 state + useCallback 的时序坑**：子组件里 `setState` 后**同一次事件**里立刻调用读该 state 的回调，读到的还是旧值；解法是把新值当参数传进去（`saveSettings(groupsOverride)`）。
 
 ---
 
 ## 下一步
 
-### V7：盲选 Blind Exchange
-
-同一主题下，双方各自选歌，提交前互相看不到对方选了什么，两边交齐后同时揭晓。
-
-**流程：**
-1. 一方创建主题（blind pair）
-2. Claude / User 各自提交一首歌
-3. 未揭晓前只显示"已提交 / 未提交"状态，不显示对方歌名、封面、note、标签
-4. 双方都提交后自动揭晓
-5. 揭晓后变回普通 pair 展示，双列卡片 / 标签 / note / 留言 / 收藏照常使用
-
-**第一版范围：**
-- 创建 blind pair
-- 未揭晓状态 UI
-- 提交状态
-- 双方交齐后揭晓
-- 揭晓后复用现有卡片展示
-
-**暂不做：**
-- 双人标签 / 年度总结 / 盲选统计 / 揭晓动画 / 复杂权限
+V7 盲选已完成（PR#20）。后续可做（暂未排期）：
+- 盲选揭晓动画 / 盲选统计 / 双人标签 / 年度总结
+- 防偷看升级：Edge Function 揭晓前不下发对方 song（真正藏住，需改后端）
 
 ---
 
