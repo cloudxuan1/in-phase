@@ -112,7 +112,7 @@
   .pair-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px; padding:8px; background:#f4f0ea; }
   .pair-jump { border:none; background:none; color:var(--accent); cursor:pointer; font-size:14px; font-family:inherit; padding:0; line-height:1; }
   .pair-jump.disabled { opacity:.35; }
-  .note { font-size: 12px; line-height: 1.6; color: #7a7068; padding: 10px 0; border-top: 1px dashed var(--light); margin-top: 8px; font-style: italic; }
+  .note { font-size: 12px; line-height: 1.6; color: #7a7068; padding: 10px 0; border-top: 1px dashed var(--light); margin-top: 8px; font-style: italic; white-space: pre-wrap; }
   .comments-section { border-top: 2px dashed var(--light); margin-top: 12px; padding-top: 10px; }
   .comments-label { font-size: 10px; color: var(--muted); margin-bottom: 8px; letter-spacing: 1px; }
   .comment-row { display: flex; gap: 8px; margin-bottom: 8px; }
@@ -172,12 +172,12 @@
 
   /* Blind placeholder card */
   .blind-card { padding: 18px 14px 16px; background: linear-gradient(135deg, #fce4d622, transparent), var(--card); border: 2px dashed var(--tan); margin-bottom: 12px; text-align: center; }
-  .blind-badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 2px; color: var(--tan); border: 1.5px solid var(--tan); padding: 2px 7px; border-radius: 2px; background: color-mix(in srgb, var(--tan) 12%, transparent); line-height: 1.4; }
-  .blind-card .blind-badge { margin-bottom: 12px; }
+  .blind-badge { display: inline-flex; align-items: center; justify-content: center; line-height: 1; vertical-align: -3px; }
+  .blind-card .blind-badge { margin-bottom: 10px; }
   .blind-theme { font-size: 13px; color: var(--accent); font-style: italic; margin-bottom: 14px; line-height: 1.4; }
   .blind-status { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text); padding: 5px 2px; line-height: 1.4; }
   .blind-wait { font-size: 10px; color: var(--muted); margin-top: 12px; letter-spacing: 2px; }
-  .cover .blind-badge { position: absolute; top: 8px; left: 8px; z-index: 2; font-size: 8px; letter-spacing: 1.5px; padding: 1px 5px; background: #faf0e6dd; }
+  .cover .blind-badge { position: absolute; top: 8px; left: 8px; z-index: 2; padding: 2px; background: #faf0e6dd; border: 1px solid var(--light); border-radius: 3px; }
   /* History card */
   .hist-card { padding: 12px; background: var(--card); border: 2px solid var(--light); margin-bottom: 8px; cursor: pointer; transition: all .2s; }
   .hist-card:hover { border-color: var(--accent); box-shadow: 3px 3px 0 #fce4d6; }
@@ -1015,7 +1015,7 @@ function SongCard({
     className: "pair-pill"
   }, `#${pair.id}`), isBlindPair(pair) && isRevealed(pair) && /*#__PURE__*/React.createElement("div", {
     className: "blind-badge"
-  }, "BLIND")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(BlindIcon, { size: 14 }))), /*#__PURE__*/React.createElement("div", {
     className: "song-title-row"
   }, /*#__PURE__*/React.createElement("div", {
     className: "song-title"
@@ -1438,6 +1438,28 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs, favTags, 
   );
 }
 // ─── History Card ───────────────────────────────────────────────────────
+// 双牌翻开:两张小卡片交叠,一张微微掀起,表示「各自亮牌」
+function BlindIcon({ size = 16 }) {
+  return /*#__PURE__*/React.createElement("svg", {
+    width: size,
+    height: size,
+    viewBox: "0 0 20 20",
+    fill: "none",
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("rect", {
+    x: "3", y: "5", width: "9", height: "12", rx: "1.5",
+    strokeWidth: "1.3",
+    style: { stroke: "var(--accent)", fill: "var(--card)" }
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "8", y: "3", width: "9", height: "12", rx: "1.5",
+    strokeWidth: "1.3",
+    transform: "rotate(5 12.5 9)",
+    style: { stroke: "var(--accent)", fill: "var(--card)" }
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "7.5", cy: "11", r: "1.2",
+    style: { fill: "var(--accent)" }
+  }));
+}
 function BlindPlaceholder({
   pair: p,
   settings: s
@@ -1453,7 +1475,7 @@ function BlindPlaceholder({
     className: "blind-card"
   }, /*#__PURE__*/React.createElement("div", {
     className: "blind-badge"
-  }, "BLIND"), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(BlindIcon, { size: 24 })), /*#__PURE__*/React.createElement("div", {
     className: "blind-theme"
   }, "\"", p.theme?.split("/")[0].trim(), "\""), statusRow(s.claudeIcon, s.claudeName, cDone), statusRow(s.userIcon, s.userName, uDone), /*#__PURE__*/React.createElement("div", {
     className: "blind-wait"
@@ -1477,7 +1499,7 @@ function HistCard({
       className: "hist-meta"
     }, /*#__PURE__*/React.createElement("span", {
       className: "blind-badge"
-    }, "BLIND"), " · ", /*#__PURE__*/React.createElement("span", {
+    }, /*#__PURE__*/React.createElement(BlindIcon, { size: 13 })), " · ", /*#__PURE__*/React.createElement("span", {
       style: { color: "var(--muted)" }
     }, "等待揭晓")), /*#__PURE__*/React.createElement("div", {
       className: "hist-theme"
@@ -2588,7 +2610,10 @@ function App() {
   }, settings.userIcon, "Ask"), /*#__PURE__*/React.createElement("button", {
     className: `btn ${exMode === "blind" ? "active" : ""}`,
     onClick: () => setExMode("blind")
-  }, "Blind")), exMode === "user" && /*#__PURE__*/React.createElement("div", {
+  }, "Blind", /*#__PURE__*/React.createElement("span", {
+    className: "blind-badge",
+    style: { marginLeft: 4 }
+  }, /*#__PURE__*/React.createElement(BlindIcon, { size: 13 })))), exMode === "user" && /*#__PURE__*/React.createElement("div", {
     className: "exchange-card"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
