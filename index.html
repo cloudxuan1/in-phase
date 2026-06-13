@@ -112,19 +112,20 @@
   .pair-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px; padding:8px; background:#f4f0ea; }
   .pair-jump { border:none; background:none; color:var(--accent); cursor:pointer; font-size:14px; font-family:inherit; padding:0; line-height:1; }
   .pair-jump.disabled { opacity:.35; }
-  .note { font-size: 12px; line-height: 1.6; color: #7a7068; padding: 10px 0; border-top: 1px dashed var(--light); margin-top: 8px; font-style: italic; }
+  .note { font-size: 12px; line-height: 1.6; color: #7a7068; padding: 10px 0; border-top: 1px dashed var(--light); margin-top: 8px; font-style: italic; white-space: pre-wrap; }
   .comments-section { border-top: 2px dashed var(--light); margin-top: 12px; padding-top: 10px; }
   .comments-label { font-size: 10px; color: var(--muted); margin-bottom: 8px; letter-spacing: 1px; }
   .comment-row { display: flex; gap: 8px; margin-bottom: 8px; }
   .comment-row.claude { flex-direction: row; }
   .comment-row.user { flex-direction: row-reverse; }
   .comment-avatar { width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 2px solid var(--border); background: var(--cream); }
-  .comment-bubble { padding: 8px 10px; font-size: 11px; line-height: 1.5; color: var(--text); max-width: 85%; }
+  .comment-bubble { padding: 8px 10px; font-size: 11px; line-height: 1.5; color: var(--text); max-width: 85%; white-space: pre-wrap; overflow-wrap: anywhere; }
   .comment-bubble.claude { background: #fce4d6; border: 1px solid #f4c4a0; }
   .comment-bubble.user { background: #e8ede4; border: 1px solid #c4d4b4; }
-  .comment-input { display: flex; gap: 6px; margin-top: 8px; }
-  .comment-input input { flex: 1; padding: 8px 10px; border: 2px solid var(--border); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; }
+  .comment-input { display: flex; gap: 6px; margin-top: 8px; align-items: flex-end; }
+  .comment-input textarea { flex: 1; padding: 8px 10px; border: 2px solid var(--border); background: var(--cream); font-family: inherit; font-size: 11px; color: var(--text); outline: none; resize: none; overflow-y: auto; line-height: 1.4; max-height: 120px; }
   .comment-input button { padding: 6px 12px; border: 2px solid var(--border); background: var(--accent); color: var(--cream); cursor: pointer; font-size: 11px; font-family: inherit; box-shadow: 2px 2px 0 #7a7068; line-height: 1.4; white-space: nowrap; }
+  .comment-input button:disabled { opacity: .5; cursor: default; }
 
   /* Filter */
   .filter-bar { padding: 8px 16px 4px; display: flex; flex-direction: column; gap: 6px; border-bottom: 1px dashed var(--light); }
@@ -164,11 +165,19 @@
   .exchange-card { background: var(--card); border: 2px solid var(--border); padding: 20px; margin-bottom: 16px; box-shadow: 3px 3px 0 var(--light); }
   .input { width: 100%; padding: 10px; border: 2px solid var(--border); background: var(--cream); font-family: inherit; font-size: 12px; color: var(--text); outline: none; margin-bottom: 8px; }
   .input:focus { border-color: var(--accent); }
-  textarea.input { resize: vertical; min-height: 60px; }
+  textarea.input { resize: none; min-height: 60px; max-height: 200px; overflow-y: auto; line-height: 1.4; }
   .submit-btn { padding: 10px 24px; border: 2px solid var(--border); background: var(--accent); color: var(--cream); cursor: pointer; font-size: 12px; font-family: inherit; box-shadow: 3px 3px 0 #7a7068; line-height: 1.4; }
   .submit-btn:disabled { opacity: .5; cursor: not-allowed; }
   .submit-btn:not(:disabled):hover { transform: translateY(-1px); }
 
+  /* Blind placeholder card */
+  .blind-card { padding: 18px 14px 16px; background: linear-gradient(135deg, #fce4d622, transparent), var(--card); border: 2px dashed var(--tan); margin-bottom: 12px; text-align: center; }
+  .blind-badge { display: inline-flex; align-items: center; justify-content: center; line-height: 1; vertical-align: -3px; }
+  .blind-card .blind-badge { margin-bottom: 10px; }
+  .blind-theme { font-size: 13px; color: var(--accent); font-style: italic; margin-bottom: 14px; line-height: 1.4; }
+  .blind-status { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text); padding: 5px 2px; line-height: 1.4; }
+  .blind-wait { font-size: 10px; color: var(--muted); margin-top: 12px; letter-spacing: 2px; }
+  .cover .blind-badge { position: absolute; top: 8px; left: 8px; z-index: 2; padding: 2px; background: #faf0e6dd; border: 1px solid var(--light); border-radius: 3px; }
   /* History card */
   .hist-card { padding: 12px; background: var(--card); border: 2px solid var(--light); margin-bottom: 8px; cursor: pointer; transition: all .2s; }
   .hist-card:hover { border-color: var(--accent); box-shadow: 3px 3px 0 #fce4d6; }
@@ -220,7 +229,7 @@
     .columns.hide-claude .divider,
     .columns.hide-user .divider { display: none; }
     /* defensive: keep content from re-expanding column once ratios are set */
-    .comment-input input { min-width: 0; }
+    .comment-input textarea { min-width: 0; }
     .note { overflow-wrap: anywhere; }
     .song-title { overflow-wrap: anywhere; }
     /* explicit column ratios driven by which side is expanded */
@@ -519,6 +528,26 @@ function getSongTags(song) {
     : Object.entries(t).filter(([, v]) => v && typeof v === 'string').map(([, v]) => v);
   return raw.map(normalizeTag).filter(Boolean);
 }
+// ─── Blind Exchange helpers ───────────────────────────────────────────────
+function isBlindPair(pair) {
+  return pair?.claude_song?.blind === true || pair?.user_song?.blind === true;
+}
+function hasSubmitted(song) {
+  // 真实 song 必有 title;纯占位 { blind: true } 没有 title
+  return !!(song && song.title);
+}
+function isRevealed(pair) {
+  return hasSubmitted(pair?.claude_song) && hasSubmitted(pair?.user_song);
+}
+// 是否允许读取该 pair 的真实 song 内容(title/artist/note/tags/link/cover)
+function canRevealSong(pair) {
+  return !isBlindPair(pair) || isRevealed(pair);
+}
+// 全局读取统一入口:未揭晓 blind pair 不暴露任何 song,只剩 theme + 提交状态
+function visibleSongs(pair) {
+  if (!canRevealSong(pair)) return [];
+  return [pair?.claude_song, pair?.user_song].filter(Boolean);
+}
 function getTagCategory(tag) {
   for (const [cat, tags] of Object.entries(TAGS)) {
     if (tags.includes(tag)) return cat;
@@ -529,7 +558,7 @@ const DEFAULT_QUICK_TAGS = ["深夜 Late Night", "晴 Sunny", "午后 Afternoon"
 function computeQuickTags(pairs, limit = 8) {
   const freq = {};
   (pairs || []).forEach(p => {
-    [...getSongTags(p.claude_song), ...getSongTags(p.user_song)].forEach(tag => {
+    visibleSongs(p).flatMap(getSongTags).forEach(tag => {
       freq[tag] = (freq[tag] || 0) + 1;
     });
   });
@@ -544,7 +573,7 @@ function computeQuickTags(pairs, limit = 8) {
 function computeAllCustomTags(pairs) {
   const freq = {};
   (pairs || []).forEach(p => {
-    [...getSongTags(p.claude_song), ...getSongTags(p.user_song)]
+    visibleSongs(p).flatMap(getSongTags)
       .filter(tag => getTagCategory(tag) === 'custom')
       .forEach(tag => { freq[tag] = (freq[tag] || 0) + 1; });
   });
@@ -894,6 +923,8 @@ function SongCard({
   onToggleFav
 }) {
   const [draft, setDraft] = useState("");
+  const [posting, setPosting] = useState(false);
+  const taRef = React.useRef(null);
   const [editing, setEditing] = useState(false);
   const [editCover, setEditCover] = useState("");
   const [editLink, setEditLink] = useState("");
@@ -921,9 +952,15 @@ function SongCard({
     }
   }, "\u25CC"), "\u7B49\u5F85\u56DE\u61C9", /*#__PURE__*/React.createElement("br", null), "Awaiting response");
   const post = async () => {
-    if (!draft.trim()) return;
-    await onAddComment(pair.id, "user", draft.trim(), side);
-    setDraft("");
+    if (!draft.trim() || posting) return;
+    setPosting(true);
+    try {
+      await onAddComment(pair.id, "user", draft.trim(), side);
+      setDraft("");
+      if (taRef.current) taRef.current.style.height = "auto";
+    } finally {
+      setPosting(false);
+    }
   };
   const sideComments = comments.filter(c => c.side === side || !c.side);
   const startEdit = e => {
@@ -976,7 +1013,9 @@ function SongCard({
     className: "album-label"
   }, song.album), /*#__PURE__*/React.createElement("div", {
     className: "pair-pill"
-  }, `#${pair.id}`)), /*#__PURE__*/React.createElement("div", {
+  }, `#${pair.id}`), isBlindPair(pair) && isRevealed(pair) && /*#__PURE__*/React.createElement("div", {
+    className: "blind-badge"
+  }, /*#__PURE__*/React.createElement(BlindIcon, { size: 14 }))), /*#__PURE__*/React.createElement("div", {
     className: "song-title-row"
   }, /*#__PURE__*/React.createElement("div", {
     className: "song-title"
@@ -1163,16 +1202,24 @@ function SongCard({
     }
   }, "\u9084\u6C92\u6709\u7559\u8A00"), /*#__PURE__*/React.createElement("div", {
     className: "comment-input"
-  }, /*#__PURE__*/React.createElement("input", {
-    placeholder: "\u7559\u8A00...",
+  }, /*#__PURE__*/React.createElement("textarea", {
+    ref: taRef,
+    rows: 1,
+    placeholder: "\u7559\u8A00\u2026(Shift+\u56DE\u8F66\u9001\u51FA)",
     value: draft,
-    onChange: e => setDraft(e.target.value),
+    disabled: posting,
+    onChange: e => {
+      setDraft(e.target.value);
+      e.target.style.height = "auto";
+      e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+    },
     onKeyDown: e => {
-      if (e.key === "Enter") post();
+      if (e.key === "Enter" && e.shiftKey) { e.preventDefault(); post(); }
     }
   }), /*#__PURE__*/React.createElement("button", {
-    onClick: post
-  }, "\u21B5")))));
+    onClick: post,
+    disabled: posting
+  }, posting ? "\u2026" : "\u21B5")))));
 }
 
 // ─── Tag Filter ──────────────────────────────────────────────────────────────────────
@@ -1391,11 +1438,85 @@ function TagFilter({ activeTags, toggleTag, clearTags, q, setQ, pairs, favTags, 
   );
 }
 // ─── History Card ───────────────────────────────────────────────────────
+// 双牌翻开:两张小卡片交叠,一张微微掀起,表示「各自亮牌」
+function BlindIcon({ size = 16 }) {
+  return /*#__PURE__*/React.createElement("svg", {
+    width: size,
+    height: size,
+    viewBox: "0 0 20 20",
+    fill: "none",
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("rect", {
+    x: "3", y: "5", width: "9", height: "12", rx: "1.5",
+    strokeWidth: "1.3",
+    style: { stroke: "var(--accent)", fill: "var(--card)" }
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "8", y: "3", width: "9", height: "12", rx: "1.5",
+    strokeWidth: "1.3",
+    transform: "rotate(5 12.5 9)",
+    style: { stroke: "var(--accent)", fill: "var(--card)" }
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "7.5", cy: "11", r: "1.2",
+    style: { fill: "var(--accent)" }
+  }));
+}
+function BlindPlaceholder({
+  pair: p,
+  settings: s
+}) {
+  const cDone = hasSubmitted(p.claude_song);
+  const uDone = hasSubmitted(p.user_song);
+  const statusRow = (icon, name, done) => /*#__PURE__*/React.createElement("div", {
+    className: "blind-status"
+  }, /*#__PURE__*/React.createElement("span", null, icon, " ", name), /*#__PURE__*/React.createElement("span", {
+    style: { color: done ? "var(--place)" : "var(--time)" }
+  }, done ? "✓ 已提交" : "⏳ 未提交"));
+  return /*#__PURE__*/React.createElement("div", {
+    className: "blind-card"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "blind-badge"
+  }, /*#__PURE__*/React.createElement(BlindIcon, { size: 24 })), /*#__PURE__*/React.createElement("div", {
+    className: "blind-theme"
+  }, "\"", p.theme?.split("/")[0].trim(), "\""), statusRow(s.claudeIcon, s.claudeName, cDone), statusRow(s.userIcon, s.userName, uDone), /*#__PURE__*/React.createElement("div", {
+    className: "blind-wait"
+  }, "等待揭晓…"));
+}
 function HistCard({
   pair: p,
   settings: s,
   onClick
 }) {
+  if (isBlindPair(p) && !isRevealed(p)) {
+    const cDone = hasSubmitted(p.claude_song);
+    const uDone = hasSubmitted(p.user_song);
+    const dot = done => /*#__PURE__*/React.createElement("span", {
+      style: { fontSize: 10, color: done ? "var(--place)" : "var(--time)" }
+    }, done ? "✓" : "⏳");
+    return /*#__PURE__*/React.createElement("div", {
+      className: "hist-card",
+      onClick: onClick
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "hist-meta"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "blind-badge"
+    }, /*#__PURE__*/React.createElement(BlindIcon, { size: 13 })), " · ", /*#__PURE__*/React.createElement("span", {
+      style: { color: "var(--muted)" }
+    }, "等待揭晓")), /*#__PURE__*/React.createElement("div", {
+      className: "hist-theme"
+    }, "\"", p.theme?.split("/")[0].trim(), "\""), /*#__PURE__*/React.createElement("div", {
+      className: "hist-songs"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "hist-side"
+    }, /*#__PURE__*/React.createElement("span", {
+      style: { fontSize: 14 }
+    }, s.claudeIcon), dot(cDone)), /*#__PURE__*/React.createElement("span", {
+      style: { fontSize: 14, color: "var(--shadow)" }
+    }, "⇄"), /*#__PURE__*/React.createElement("div", {
+      className: "hist-side right"
+    }, dot(uDone), /*#__PURE__*/React.createElement("span", {
+      style: { fontSize: 14 }
+    }, s.userIcon))));
+  }
   return /*#__PURE__*/React.createElement("div", {
     className: "hist-card",
     onClick: onClick
@@ -1517,12 +1638,32 @@ function SettingsModal({
     setCustomSide(null);
     setCustomError("");
   };
+  const tagInAnyGroup = (groups, tag) => groups.some(g => g.tags.includes(tag));
   const addTag = key => {
     const tag = (tagInputs[key] || "").trim();
-    if (tag && !presetGroups.find(g => g.key === key)?.tags.includes(tag)) {
+    if (tag && !tagInAnyGroup(presetGroups, tag)) {
       setPresetGroups(pg => pg.map(g => g.key === key ? { ...g, tags: [...g.tags, tag] } : g));
     }
     setTagInputs(p => ({ ...p, [key]: "" }));
+  };
+  // 保存前收尾:并入输入框里没按回车的残留标签 + 禁止空组名
+  const flushTags = () => {
+    let groups = presetGroups;
+    let changed = false;
+    for (const [key, raw] of Object.entries(tagInputs)) {
+      const tag = (raw || "").trim();
+      if (tag && !tagInAnyGroup(groups, tag)) {
+        groups = groups.map(g => g.key === key ? { ...g, tags: [...g.tags, tag] } : g);
+        changed = true;
+      }
+    }
+    if (groups.some(g => !g.label.trim())) {
+      groups = groups.map(g => g.label.trim() ? g : { ...g, label: "未命名标签组" });
+      changed = true;
+    }
+    if (changed) setPresetGroups(groups);
+    setTagInputs({});
+    return groups;
   };
   const tagsPageContent = React.createElement("div", null,
     presetGroups.map(group => {
@@ -1572,7 +1713,8 @@ function SettingsModal({
               className: "tgm-name-input",
               value: group.label,
               placeholder: "标签组名称",
-              onChange: e => setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, label: e.target.value } : g))
+              onChange: e => setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, label: e.target.value } : g)),
+              onBlur: e => { if (!e.target.value.trim()) setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, label: "未命名标签组" } : g)); }
             }),
             React.createElement("button", {
               className: "tgm-trash-btn",
@@ -1617,7 +1759,7 @@ function SettingsModal({
                 const v = e.target.value;
                 if (v.endsWith(",") || v.endsWith("，")) {
                   const tag = v.slice(0, -1).trim();
-                  if (tag && !group.tags.includes(tag)) {
+                  if (tag && !tagInAnyGroup(presetGroups, tag)) {
                     setPresetGroups(pg => pg.map(g => g.key === group.key ? { ...g, tags: [...g.tags, tag] } : g));
                   }
                   setTagInputs(p => ({ ...p, [group.key]: "" }));
@@ -1644,7 +1786,7 @@ function SettingsModal({
   );
   return /*#__PURE__*/React.createElement("div", {
     className: "overlay",
-    onClick: onClose
+    onClick: () => { onSave(flushTags()); onClose(); }
   }, /*#__PURE__*/React.createElement("div", {
     className: "modal",
     onClick: e => e.stopPropagation()
@@ -1800,11 +1942,12 @@ function SettingsModal({
       width: "100%"
     },
     onClick: () => {
+      const groups = flushTags();
       if (page === "tags") {
-        onSave();
+        onSave(groups);
         setPage("settings");
       } else {
-        onSave();
+        onSave(groups);
         onClose();
       }
     }
@@ -1877,13 +2020,13 @@ function App() {
     userName: "You",
     headphoneType: "wired"
   });
-  const [customTags, setCustomTags] = useState([]);
   const [favTags, setFavTags] = useState([]);
   const [favPairs, setFavPairs] = useState([]);
   const [favSort, setFavSort] = useState("default");
   const [presetGroups, setPresetGroups] = useState(DEFAULT_PRESET_GROUPS);
   const [exMode, setExMode] = useState("claude");
   const [pendingIdx, setPendingIdx] = useState(0);
+  const [blindIdx, setBlindIdx] = useState(0);
   const [exTheme, setExTheme] = useState("");
   const [exSong, setExSong] = useState("");
   const [exArtist, setExArtist] = useState("");
@@ -1916,7 +2059,6 @@ function App() {
           userName: s.user_name || "You",
           headphoneType: s.headphone_type || "wired"
         });
-        setCustomTags(s.custom_tags || []);
         const rawFav = Array.isArray(s.fav_tags) ? s.fav_tags : [];
         setFavTags([...new Set(rawFav.filter(t => typeof t === "string" && t.trim() !== ""))]);
         try {
@@ -1979,11 +2121,12 @@ function App() {
     }
   };
   const filtered = pairs.filter(p => {
-    const songTags = [...getSongTags(p.claude_song), ...getSongTags(p.user_song)];
+    const vis = visibleSongs(p);
+    const songTags = vis.flatMap(getSongTags);
     const commentText = (comments[p.id] || []).map(c => c.text).join(" ");
     const haystack = [
-      p.theme, p.claude_song?.title, p.claude_song?.artist, p.claude_song?.note,
-      p.user_song?.title, p.user_song?.artist, p.user_song?.note,
+      p.theme,
+      ...vis.flatMap(s => [s?.title, s?.artist, s?.note]),
       commentText, ...songTags
     ].filter(Boolean).join(" ").toLowerCase();
     const searchMatch = !q.trim() || haystack.includes(q.trim().toLowerCase());
@@ -2036,18 +2179,17 @@ function App() {
     });
     if (r) setPairs(p => p.map(x => x.id === pid ? r : x));
   }, []);
-  const saveSettings = useCallback(async () => {
+  const saveSettings = useCallback(async (groupsOverride) => {
     await api("/settings", "PATCH", {
       claude_icon: settings.claudeIcon,
       claude_name: settings.claudeName,
       user_icon: settings.userIcon,
       user_name: settings.userName,
       headphone_type: settings.headphoneType,
-      custom_tags: customTags,
-      preset_groups: presetGroups,
+      preset_groups: groupsOverride || presetGroups,
       fav_tags: [...new Set(favTags.filter(t => typeof t === "string" && t.trim() !== ""))]
     });
-  }, [settings, customTags, presetGroups, favTags]);
+  }, [settings, presetGroups, favTags]);
   async function searchMusic() {
     if (!exSong.trim() && !exArtist.trim()) return;
     setSearching(true);
@@ -2121,6 +2263,39 @@ function App() {
     clearForm();
     setSub(false);
   }
+  async function createBlindTheme() {
+    if (!exTheme.trim()) return;
+    setSub(true);
+    const r = await api("/pairs", "POST", {
+      theme: exTheme.trim(),
+      asked_by: "user",
+      claude_song: { blind: true },
+      user_song: { blind: true }
+    });
+    if (r) setPairs(p => [r, ...p]);
+    clearForm();
+    setSub(false);
+  }
+  async function respondBlind(pid) {
+    if (!exSong.trim() || !exArtist.trim()) return;
+    setSub(true);
+    const song = {
+      blind: true,
+      title: exSong.trim(),
+      artist: exArtist.trim(),
+      album: exAlbum.trim(),
+      cover: exCover,
+      link: exLink,
+      note: exNote.trim(),
+      tags: { list: exTagInput.trim() && !exTagList.includes(exTagInput.trim()) ? [...exTagList, exTagInput.trim()] : exTagList }
+    };
+    const r = await api(`/pairs/${pid}`, "PATCH", {
+      user_song: song
+    });
+    if (r) setPairs(p => p.map(x => x.id === pid ? r : x));
+    clearForm();
+    setSub(false);
+  }
   const has = pairs.some(p => p.claude_song || p.user_song);
   const pendingQs = pairs.filter(p => p.asked_by === "claude" && !p.user_song).slice().sort((a, b) => a.id - b.id);
   const pending = pendingQs[pendingIdx] || pendingQs[0];
@@ -2130,6 +2305,10 @@ function App() {
     const idx = pendingQs.findIndex(p => p.id === id);
     if (idx >= 0) setPendingIdx(idx);
   };
+  const blindOpen = pairs.filter(p => isBlindPair(p) && !isRevealed(p)).slice().sort((a, b) => a.id - b.id);
+  const blindSel = blindOpen[blindIdx] || blindOpen[0];
+  const blindCount = blindOpen.length;
+  const blindPos = blindSel ? blindOpen.findIndex(p => p.id === blindSel.id) + 1 : 0;
   if (loading) return /*#__PURE__*/React.createElement("div", {
     className: "loading"
   }, /*#__PURE__*/React.createElement("span", {
@@ -2167,6 +2346,14 @@ function App() {
     className: "submit-btn",
     onClick: loadData
   }, "\u91CD\u8A66 Retry")));
+  const noteTextarea = () => /*#__PURE__*/React.createElement("textarea", {
+    className: "input",
+    placeholder: "你和這首歌的故事...",
+    value: exNote,
+    rows: 2,
+    ref: el => { if (el) { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 200) + "px"; } },
+    onChange: e => setExNote(e.target.value)
+  });
   const tagComposer = () => {
     const quickTags = computeQuickTags(pairs);
     const addTag = raw => {
@@ -2343,7 +2530,10 @@ function App() {
   }, "♡", /*#__PURE__*/React.createElement("br", null), "還沒有收藏"), favFiltered.map(p => /*#__PURE__*/React.createElement("div", {
     key: `c-${p.id}`,
     ref: el => refs.current[`c-${p.id}`] = el
-  }, /*#__PURE__*/React.createElement(SongCard, {
+  }, isBlindPair(p) && !isRevealed(p) ? /*#__PURE__*/React.createElement(BlindPlaceholder, {
+    pair: p,
+    settings: settings
+  }) : /*#__PURE__*/React.createElement(SongCard, {
     song: p.claude_song,
     pair: p,
     expanded: exp === `c-${p.id}`,
@@ -2385,7 +2575,10 @@ function App() {
   }, "♡", /*#__PURE__*/React.createElement("br", null), "還沒有收藏", /*#__PURE__*/React.createElement("br", null), "點卡片上的 ♡ 來收藏"), favFiltered.map(p => /*#__PURE__*/React.createElement("div", {
     key: `u-${p.id}`,
     ref: el => refs.current[`u-${p.id}`] = el
-  }, /*#__PURE__*/React.createElement(SongCard, {
+  }, isBlindPair(p) && !isRevealed(p) ? /*#__PURE__*/React.createElement(BlindPlaceholder, {
+    pair: p,
+    settings: settings
+  }) : /*#__PURE__*/React.createElement(SongCard, {
     song: p.user_song,
     pair: p,
     expanded: exp === `u-${p.id}`,
@@ -2433,7 +2626,13 @@ function App() {
   }, "Reply", settings.claudeIcon), /*#__PURE__*/React.createElement("button", {
     className: `btn ${exMode === "user" ? "active" : ""}`,
     onClick: () => setExMode("user")
-  }, settings.userIcon, "Ask")), exMode === "user" && /*#__PURE__*/React.createElement("div", {
+  }, settings.userIcon, "Ask"), /*#__PURE__*/React.createElement("button", {
+    className: `btn ${exMode === "blind" ? "active" : ""}`,
+    onClick: () => setExMode("blind")
+  }, "Blind", /*#__PURE__*/React.createElement("span", {
+    className: "blind-badge",
+    style: { marginLeft: 4 }
+  }, /*#__PURE__*/React.createElement(BlindIcon, { size: 13 })))), exMode === "user" && /*#__PURE__*/React.createElement("div", {
     className: "exchange-card"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2539,12 +2738,7 @@ function App() {
     placeholder: "\u5C08\u8F2F Album (optional)",
     value: exAlbum,
     onChange: e => setExAlbum(e.target.value)
-  }), /*#__PURE__*/React.createElement("textarea", {
-    className: "input",
-    placeholder: "\u4F60\u548C\u9019\u9996\u6B4C\u7684\u6545\u4E8B...",
-    value: exNote,
-    onChange: e => setExNote(e.target.value)
-  }), tagComposer(), /*#__PURE__*/React.createElement("button", {
+  }), noteTextarea(), tagComposer(), /*#__PURE__*/React.createElement("button", {
     className: "submit-btn",
     disabled: !exTheme.trim() || !exSong.trim() || !exArtist.trim() || sub,
     onClick: submitExchange
@@ -2691,12 +2885,7 @@ function App() {
     placeholder: "\u5C08\u8F2F (optional)",
     value: exAlbum,
     onChange: e => setExAlbum(e.target.value)
-  }), /*#__PURE__*/React.createElement("textarea", {
-    className: "input",
-    placeholder: "\u4F60\u548C\u9019\u9996\u6B4C\u7684\u6545\u4E8B...",
-    value: exNote,
-    onChange: e => setExNote(e.target.value)
-  }), tagComposer(), /*#__PURE__*/React.createElement("button", {
+  }), noteTextarea(), tagComposer(), /*#__PURE__*/React.createElement("button", {
     className: "submit-btn",
     disabled: !exSong.trim() || !exArtist.trim() || sub,
     onClick: () => respondToQ(pending.id)
@@ -2708,7 +2897,94 @@ function App() {
       fontSize: 12,
       lineHeight: 1.8
     }
-  }, "\u76EE\u524D\u6C92\u6709\u5F85\u56DE\u61C9\u7684\u554F\u984C", /*#__PURE__*/React.createElement("br", null), "\u544A\u8A34 ", settings.claudeName, "\u300C\u8A72\u4F60\u51FA\u984C\u4E86\u300D", /*#__PURE__*/React.createElement("br", null), "\u7136\u5F8C\u9EDE \u21BB \u5237\u65B0")), pairs.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, "\u76EE\u524D\u6C92\u6709\u5F85\u56DE\u61C9\u7684\u554F\u984C", /*#__PURE__*/React.createElement("br", null), "\u544A\u8A34 ", settings.claudeName, "\u300C\u8A72\u4F60\u51FA\u984C\u4E86\u300D", /*#__PURE__*/React.createElement("br", null), "\u7136\u5F8C\u9EDE \u21BB \u5237\u65B0")), exMode === "blind" && /*#__PURE__*/React.createElement("div", {
+    className: "exchange-card"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: { fontSize: 12, color: "var(--muted)", marginBottom: 8 }
+  }, "\u521B\u5EFA\u76F2\u9009\u4E3B\u9898 Create Blind Theme"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "\u4E3B\u984C Theme",
+    value: exTheme,
+    onChange: e => setExTheme(e.target.value)
+  }), /*#__PURE__*/React.createElement("button", {
+    className: "submit-btn",
+    disabled: !exTheme.trim() || sub,
+    onClick: createBlindTheme
+  }, sub ? "\u9001\u51FA\u4E2D..." : "\u521B\u5EFA\u76F2\u9009 Create \u2192"), /*#__PURE__*/React.createElement("div", {
+    style: { borderTop: "1px dashed var(--light)", margin: "22px 0 14px", paddingTop: 16, fontSize: 12, color: "var(--muted)" }
+  }, "\u56DE\u61C9\u76F2\u9009 Respond Blind", blindCount > 0 ? ` \u00B7 ${blindPos} / ${blindCount}` : ""), blindCount === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: { textAlign: "center", padding: 16, color: "var(--muted)", fontSize: 12, lineHeight: 1.8 }
+  }, "\u76EE\u524D\u6C92\u6709\u672A\u63ED\u66C9\u7684\u76F2\u9009", /*#__PURE__*/React.createElement("br", null), "\u5728\u4E0A\u65B9\u5275\u5EFA\u4E00\u500B\u76F2\u9009\u4E3B\u984C") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", alignItems: "center", padding: "10px 0 14px", borderBottom: "1px dashed var(--light)", marginBottom: 14 }
+  }, /*#__PURE__*/React.createElement("button", {
+    disabled: blindCount <= 1,
+    onClick: () => setBlindIdx(i => blindCount ? (i - 1 + blindCount) % blindCount : 0),
+    style: { background: "none", border: "none", cursor: blindCount <= 1 ? "default" : "pointer", fontSize: 22, color: "var(--muted)", padding: "0 8px", lineHeight: 1, opacity: blindCount <= 1 ? .25 : .6, fontFamily: "inherit", flexShrink: 0 }
+  }, "\u2039"), /*#__PURE__*/React.createElement("div", {
+    style: { flex: 1, textAlign: "center", fontSize: 14, fontWeight: 700, color: "var(--accent)", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", padding: "0 4px" }
+  }, "#", blindSel.id, "\u00A0\"", blindSel.theme, "\""), /*#__PURE__*/React.createElement("button", {
+    disabled: blindCount <= 1,
+    onClick: () => setBlindIdx(i => blindCount ? (i + 1) % blindCount : 0),
+    style: { background: "none", border: "none", cursor: blindCount <= 1 ? "default" : "pointer", fontSize: 22, color: "var(--muted)", padding: "0 8px", lineHeight: 1, opacity: blindCount <= 1 ? .25 : .6, fontFamily: "inherit", flexShrink: 0 }
+  }, "\u203A")), /*#__PURE__*/React.createElement("div", {
+    style: { fontSize: 11, marginBottom: 14 }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", justifyContent: "space-between", padding: "3px 0" }
+  }, /*#__PURE__*/React.createElement("span", null, settings.claudeIcon, " ", settings.claudeName), /*#__PURE__*/React.createElement("span", {
+    style: { color: hasSubmitted(blindSel.claude_song) ? "var(--place)" : "var(--time)" }
+  }, hasSubmitted(blindSel.claude_song) ? "\u2713 \u5DF2\u63D0\u4EA4" : "\u23F3 \u672A\u63D0\u4EA4")), /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", justifyContent: "space-between", padding: "3px 0" }
+  }, /*#__PURE__*/React.createElement("span", null, settings.userIcon, " ", settings.userName), /*#__PURE__*/React.createElement("span", {
+    style: { color: hasSubmitted(blindSel.user_song) ? "var(--place)" : "var(--time)" }
+  }, hasSubmitted(blindSel.user_song) ? "\u2713 \u5DF2\u63D0\u4EA4" : "\u23F3 \u672A\u63D0\u4EA4"))), !hasSubmitted(blindSel.user_song) ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", gap: 8 }
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    style: { flex: 1 },
+    placeholder: "\u6B4C\u540D",
+    value: exSong,
+    onChange: e => setExSong(e.target.value)
+  }), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    style: { flex: 1 },
+    placeholder: "\u85DD\u4EBA",
+    value: exArtist,
+    onChange: e => setExArtist(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", {
+    style: { display: "flex", gap: 8, marginBottom: 8 }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn small",
+    onClick: searchMusic,
+    disabled: searching,
+    style: { fontSize: 10, padding: "6px 12px" }
+  }, searching ? "\u641C\u7D22\u4E2D..." : "\uD83D\uDD0D \u641C\u7D22\u5C01\u9762 Search"), exCover && /*#__PURE__*/React.createElement("img", {
+    src: exCover,
+    style: { width: 32, height: 32, border: "1px solid var(--light)", objectFit: "cover" }
+  })), searchResults.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: { border: "2px solid var(--border)", background: "var(--card)", marginBottom: 8, maxHeight: 200, overflow: "auto" }
+  }, searchResults.map((r, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    onClick: () => pickResult(r),
+    style: { display: "flex", gap: 8, padding: 8, cursor: "pointer", borderBottom: "1px solid var(--light)", alignItems: "center" }
+  }, r.cover && /*#__PURE__*/React.createElement("img", {
+    src: r.cover,
+    style: { width: 36, height: 36, objectFit: "cover" }
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: { fontSize: 11, fontWeight: 700 }
+  }, r.title), /*#__PURE__*/React.createElement("div", {
+    style: { fontSize: 9, color: "var(--muted)" }
+  }, r.artist, " \xB7 ", r.album))))), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    placeholder: "\u5C08\u8F2F (optional)",
+    value: exAlbum,
+    onChange: e => setExAlbum(e.target.value)
+  }), noteTextarea(), tagComposer(), /*#__PURE__*/React.createElement("button", {
+    className: "submit-btn",
+    disabled: !exSong.trim() || !exArtist.trim() || sub,
+    onClick: () => respondBlind(blindSel.id)
+  }, sub ? "\u9001\u51FA\u4E2D..." : "\u63D0\u4EA4\u76F2\u9009 Submit \u2192")) : /*#__PURE__*/React.createElement("div", {
+    style: { textAlign: "center", padding: 16, color: "var(--muted)", fontSize: 12, lineHeight: 1.8 }
+  }, "\u4F60\u5DF2\u63D0\u4EA4 \u2713", /*#__PURE__*/React.createElement("br", null), "\u7B49 ", settings.claudeName, " \u63D0\u4EA4\u5F8C\u81EA\u52D5\u63ED\u66C9", /*#__PURE__*/React.createElement("br", null), "\u9EDE \u21BB \u5237\u65B0"))), pairs.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 24
     }
