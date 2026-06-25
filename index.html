@@ -547,6 +547,8 @@ function normalizeTag(tag) {
   if (!clean) return "";
   if (OLD_TAG_MAP[clean]) return OLD_TAG_MAP[clean];
   if (TRAD_TO_SIMP[clean]) return TRAD_TO_SIMP[clean];
+  const zhOnly = clean.match(/^([\u3400-\u9FFF]+)\s+[A-Za-z][A-Za-z\s'’\-]*$/);
+  if (zhOnly && TRAD_TO_SIMP[zhOnly[1]]) return TRAD_TO_SIMP[zhOnly[1]];
   return clean;
 }
 function getSongTags(song) {
