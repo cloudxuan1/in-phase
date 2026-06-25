@@ -47,3 +47,5 @@ jobs:
           git add index.html .github/workflows/one-time-bookmark-icons.yml
           git commit -m "fix: sync bookmark favicon with touch icons"
           git push
+
+# trigger: bookmark icons
