@@ -151,6 +151,26 @@ Edge Function 路由（`/crosstalk-api`）：
 
 **正确方案**：两个 modal 在 `.overlay` 下并列，不嵌套。数括号时要逐层追踪。
 
+### ✅ 中间分隔线 / note 虚线在 iPhone 上变形（main，2026-09）
+
+**现象**：`.divider`（两列中间的竖虚线）虚线段忽长忽短，卡片展开后列一变高就更夸张；note 顶部虚线同款。
+
+**原因**：用 `repeating-linear-gradient` 画虚线，iOS Safari 会把整条渐变按元素尺寸缩放，4px/4px 的节奏随高度/宽度被拉伸。
+
+**正确方案**：一律用边框画虚线——`.divider { width: 0; border-left: 2px dashed var(--shadow) }`，`.note { border-top: 1px dashed var(--light) }`，和顶部标题线同一种画法。项目里现在没有任何 `repeating-linear-gradient`，**不要再用它画虚线**。
+
+**❌ 弯路**：把 note 的 dashed 边框"升级"成 gradient / `::before` 伪元素 / `background-size` 裁剪——方向反了，越改越歪。
+
+---
+
+### ✅ note 每段首行缩进 1 字（main，2026-09）
+
+**原因**：`.note-para { text-indent: 1em }` 早就有，但 `renderNote` 按空行（`\n{2,}`）分段；实际数据里 note 全是单回车分行，整条被当成一段，只有第一行缩进。
+
+**正确方案**：`renderNote` 按单个 `\n` 分段，每行一个 `.note-para`；空行渲染 `\u00a0` 保留高度；去掉段间 8px 间距，行距靠 `line-height: 1.6`。
+
+---
+
 ---
 
 ## 已完成功能
@@ -221,6 +241,8 @@ Edge Function 路由（`/crosstalk-api`）：
 - **SVG 属性里 `var()` 不生效**：`<rect fill="var(--accent)">` 不吃 CSS 变量，颜色要写进 `style={{ fill: "var(--accent)" }}`（`BlindIcon` 踩过）。
 - **textarea 换行渲染要 `white-space: pre-wrap`**：textarea 里敲的换行确实存进了 DB，但展示元素默认把换行折叠成空格；给展示节点加 `pre-wrap` 才显示。
 - **"即时改 state 但只在某按钮才 PATCH" = 静默丢失**：UI 立刻生效会让人以为存了；凡是弹窗里改的东西，所有关闭路径（含点背景）都要保存，或用 `useEffect` 自动持久化（favTags / presetGroups 同款坑）。
+- **先查真实数据再猜**：CSS 明明写对了却没效果，先用 Supabase MCP 查一眼 DB 里的实际内容（note 分段那次：代码按空行分段，数据全是单回车）。
+- **iOS Safari 渐变会按元素尺寸缩放**：`repeating-linear-gradient` 画的细虚线在高/宽元素上会被拉伸，用 `border: dashed` 代替。
 - **父 state + useCallback 的时序坑**：子组件里 `setState` 后**同一次事件**里立刻调用读该 state 的回调，读到的还是旧值；解法是把新值当参数传进去（`saveSettings(groupsOverride)`）。
 
 ---
