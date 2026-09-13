@@ -112,7 +112,12 @@
   .pair-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px; padding:8px; background:#f4f0ea; }
   .pair-jump { border:none; background:none; color:var(--accent); cursor:pointer; font-size:14px; font-family:inherit; padding:0; line-height:1; }
   .pair-jump.disabled { opacity:.35; }
-  .note { font-size: 12px; line-height: 1.6; color: #7a7068; padding: 10px 0; border-top: 1px dashed var(--light); margin-top: 8px; font-style: italic; white-space: pre-wrap; }
+  .note {
+    font-size: 12px; line-height: 1.6; color: #7a7068; padding: 10px 0; margin-top: 8px;
+    font-style: italic; white-space: pre-wrap; text-indent: 2em;
+    background-image: repeating-linear-gradient(to right, var(--light) 0, var(--light) 4px, transparent 4px, transparent 8px);
+    background-size: 100% 1px; background-repeat: no-repeat; background-position: top;
+  }
   .comments-section { border-top: 2px dashed var(--light); margin-top: 12px; padding-top: 10px; }
   .comments-label { font-size: 10px; color: var(--muted); margin-bottom: 8px; letter-spacing: 1px; }
   .comment-row { display: flex; gap: 8px; margin-bottom: 8px; }
