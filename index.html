@@ -113,12 +113,8 @@
   .pair-jump { border:none; background:none; color:var(--accent); cursor:pointer; font-size:14px; font-family:inherit; padding:0; line-height:1; }
   .pair-jump.disabled { opacity:.35; }
   .note {
-    position: relative; font-size: 12px; line-height: 1.6; color: #7a7068; padding: 10px 0; margin-top: 8px;
-    font-style: italic; white-space: pre-wrap;
-  }
-  .note::before {
-    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-    background: repeating-linear-gradient(to right, var(--light) 0, var(--light) 4px, transparent 4px, transparent 8px);
+    font-size: 12px; line-height: 1.6; color: #7a7068; padding: 10px 0; margin-top: 8px;
+    border-top: 1px dashed var(--light); font-style: italic; white-space: pre-wrap;
   }
   .note-para { text-indent: 1em; }
   .note-para + .note-para { margin-top: 8px; }
