@@ -113,11 +113,15 @@
   .pair-jump { border:none; background:none; color:var(--accent); cursor:pointer; font-size:14px; font-family:inherit; padding:0; line-height:1; }
   .pair-jump.disabled { opacity:.35; }
   .note {
-    font-size: 12px; line-height: 1.6; color: #7a7068; padding: 10px 0; margin-top: 8px;
-    font-style: italic; white-space: pre-wrap; text-indent: 2em;
-    background-image: repeating-linear-gradient(to right, var(--light) 0, var(--light) 4px, transparent 4px, transparent 8px);
-    background-size: 100% 1px; background-repeat: no-repeat; background-position: top;
+    position: relative; font-size: 12px; line-height: 1.6; color: #7a7068; padding: 10px 0; margin-top: 8px;
+    font-style: italic; white-space: pre-wrap;
   }
+  .note::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: repeating-linear-gradient(to right, var(--light) 0, var(--light) 4px, transparent 4px, transparent 8px);
+  }
+  .note-para { text-indent: 2em; }
+  .note-para + .note-para { margin-top: 8px; }
   .comments-section { border-top: 2px dashed var(--light); margin-top: 12px; padding-top: 10px; }
   .comments-label { font-size: 10px; color: var(--muted); margin-bottom: 8px; letter-spacing: 1px; }
   .comment-row { display: flex; gap: 8px; margin-bottom: 8px; }
@@ -236,7 +240,7 @@
     .columns.hide-user .divider { display: none; }
     /* defensive: keep content from re-expanding column once ratios are set */
     .comment-input textarea { min-width: 0; }
-    .note { overflow-wrap: anywhere; }
+    .note-para { overflow-wrap: anywhere; }
     .song-title { overflow-wrap: anywhere; }
     /* explicit column ratios driven by which side is expanded */
     .col { min-width: 0; }
@@ -533,6 +537,14 @@ function getSongTags(song) {
     ? t.list.filter(v => typeof v === 'string' && v.trim())
     : Object.entries(t).filter(([, v]) => v && typeof v === 'string').map(([, v]) => v);
   return raw.map(normalizeTag).filter(Boolean);
+}
+function renderNote(text) {
+  const q = String.fromCharCode(34);
+  const paras = String(text || "").split(/\n{2,}/);
+  return paras.map((para, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "note-para"
+  }, i === 0 ? q : "", para, i === paras.length - 1 ? q : ""));
 }
 // ─── Blind Exchange helpers ───────────────────────────────────────────────
 function isBlindPair(pair) {
@@ -1073,7 +1085,7 @@ function SongCard({
     }
   }, "⇄")), song.note && /*#__PURE__*/React.createElement("div", {
     className: "note"
-  }, "\"", song.note, "\""), !editing && /*#__PURE__*/React.createElement("button", {
+  }, renderNote(song.note)), !editing && /*#__PURE__*/React.createElement("button", {
     onClick: startEdit,
     style: {
       fontSize: 10,
