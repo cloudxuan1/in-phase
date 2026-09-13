@@ -117,7 +117,6 @@
     border-top: 1px dashed var(--light); font-style: italic; white-space: pre-wrap;
   }
   .note-para { text-indent: 1em; }
-  .note-para + .note-para { margin-top: 8px; }
   .comments-section { border-top: 2px dashed var(--light); margin-top: 12px; padding-top: 10px; }
   .comments-label { font-size: 10px; color: var(--muted); margin-bottom: 8px; letter-spacing: 1px; }
   .comment-row { display: flex; gap: 8px; margin-bottom: 8px; }
@@ -536,11 +535,11 @@ function getSongTags(song) {
 }
 function renderNote(text) {
   const q = String.fromCharCode(34);
-  const paras = String(text || "").split(/\n{2,}/);
+  const paras = String(text || "").split(/\n/);
   return paras.map((para, i) => /*#__PURE__*/React.createElement("div", {
     key: i,
     className: "note-para"
-  }, i === 0 ? q : "", para, i === paras.length - 1 ? q : ""));
+  }, i === 0 ? q : "", para === "" ? "\u00a0" : para, i === paras.length - 1 ? q : ""));
 }
 // ─── Blind Exchange helpers ───────────────────────────────────────────────
 function isBlindPair(pair) {
