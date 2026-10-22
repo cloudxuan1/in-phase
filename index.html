@@ -2216,9 +2216,10 @@ function App() {
     setSearching(false);
   }
   function pickResult(r) {
-    setExSong(r.title);
-    setExArtist(r.artist);
-    setExAlbum(r.album);
+    // 歌名、歌手已经填了就保留自己的写法；专辑、封面、链接每次换成点的这一条
+    if (!exSong.trim()) setExSong(r.title);
+    if (!exArtist.trim()) setExArtist(r.artist);
+    setExAlbum(r.album || "");
     setExCover(r.cover);
     setExLink(r.link);
     setSearchResults([]);
